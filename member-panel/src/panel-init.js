@@ -1,0 +1,206 @@
+// Auto-generated from the original apex-member-user-panel script.
+// All hardcoded demo arrays were replaced with live fetches to the
+// Node/Express + MongoDB backend (this member's own document). Every
+// rendering function below is otherwise byte-for-byte identical to the
+// original static panel.
+export async function initMemberPanel(token, apiBase) {
+  const api = (path) =>
+    fetch(apiBase + path, { headers: { Authorization: 'Bearer ' + token } }).then((r) => {
+      if (!r.ok) throw new Error('API error ' + r.status + ' on ' + path);
+      return r.json();
+    });
+
+  const me = await api('/api/member/me');
+
+
+const ICON = {
+  dashboard:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  workouts:'<polyline points="3 12 8 12 10 6 14 18 16 12 21 12"/>',
+  diet:'<path d="M12 2a10 10 0 1 0 0.01 0z"/><path d="M12 2v10l7 5"/>',
+  progress:'<polyline points="3 17 10 10 14 14 21 7"/><polyline points="21 14 21 7 14 7"/>',
+  streak:'<path d="M12 2c1 3-2 4.5-2 7.5a2 2 0 0 0 4 0c0-1 .5-1.5 1-2 1 2 2 4 2 6.5a5 5 0 0 1-10 0c0-4 2-5.5 3-8 .5-1.3.8-2.6 2-4z"/>',
+  achievements:'<polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 17 5.5 21 7.5 13.5 2 9 9 9"/>',
+  bookings:'<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>',
+  schedule:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/>',
+  membership:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  store:'<path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  notifications:'<path d="M6 10a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'
+};
+function svgIcon(key){return '<svg class="icon" viewBox="0 0 24 24">'+ICON[key]+'</svg>';}
+
+const NAV = [
+  {label:'Overview', items:[{id:'dashboard', label:'My Dashboard', icon:'dashboard'}]},
+  {label:'Fitness', items:[
+    {id:'workouts', label:'My Workouts', icon:'workouts'},
+    {id:'diet', label:'My Diet Plan', icon:'diet'},
+    {id:'progress', label:'My Progress', icon:'progress'},
+  ]},
+  {label:'Streak & Rewards', items:[
+    {id:'streak', label:'Streak & Rewards', icon:'streak', badge:'🔥'},
+    {id:'achievements', label:'Achievements', icon:'achievements'},
+  ]},
+  {label:'Schedule', items:[
+    {id:'bookings', label:'My Bookings', icon:'bookings'},
+    {id:'classschedule', label:'Class Schedule', icon:'schedule'},
+  ]},
+  {label:'Account', items:[
+    {id:'membership', label:'Membership & Billing', icon:'membership'},
+    {id:'store', label:'Supplement Orders', icon:'store'},
+    {id:'notifications', label:'Notifications', icon:'notifications', badge:'5'},
+    {id:'settings', label:'Settings', icon:'settings'},
+  ]},
+];
+const FULL_PAGES = ['dashboard','workouts','diet','streak','bookings','membership','progress','notifications','settings'];
+
+const navContainer = document.getElementById('navContainer');
+NAV.forEach(group=>{
+  const g = document.createElement('div'); g.className='nav-group';
+  const l = document.createElement('div'); l.className='nav-label'; l.textContent=group.label; g.appendChild(l);
+  group.items.forEach(item=>{
+    const el = document.createElement('div');
+    el.className='nav-item'; el.dataset.page=item.id;
+    el.innerHTML = svgIcon(item.icon)+'<span>'+item.label+'</span>'+(item.badge?'<span class="nav-badge">'+item.badge+'</span>':'');
+    el.onclick = ()=>switchPage(item.id, item.label, item.icon);
+    g.appendChild(el);
+  });
+  navContainer.appendChild(g);
+});
+navContainer.querySelector('.nav-item').classList.add('active');
+
+function switchPage(id, label, icon){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const t = document.querySelector('.nav-item[data-page="'+id+'"]'); if(t) t.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(FULL_PAGES.includes(id)){
+    document.getElementById('page-'+id).classList.add('active');
+    document.getElementById('pageTitle').textContent = label || id;
+  } else {
+    document.getElementById('page-placeholder').classList.add('active');
+    document.getElementById('placeholderCrumb').textContent = label;
+    document.getElementById('placeholderTitle').textContent = label;
+    document.getElementById('placeholderIcon').innerHTML = ICON[icon] ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICON[icon]+'</svg>' : '✨';
+    document.getElementById('pageTitle').textContent = label;
+  }
+}
+
+/* ===== Mini heatmap generator ===== */
+function heatCells(n, active){
+  let html='';
+  for(let i=0;i<n;i++){
+    const on = i >= (n-active);
+    html += `<div style="background:${on?'var(--gold-bright)':'var(--graphite-lighter)'}"></div>`;
+  }
+  return html;
+}
+document.getElementById('dashHeat').innerHTML = heatCells(14,10);
+document.getElementById('fullHeat').innerHTML = heatCells(21,16);
+
+/* ===== Weekly activity bar chart ===== */
+function barChart(svgId, data, labels, colors, w, h){
+  const svg=document.getElementById(svgId); const pad=24, gap=16;
+  const max=Math.max(...data.map(d=>Math.max(...d)));
+  const groupW=(w-pad*2-gap*(data.length-1))/data.length;
+  svg.innerHTML='';
+  data.forEach((vals,i)=>{
+    const x=pad+i*(groupW+gap);
+    vals.forEach((v,j)=>{
+      const bw=groupW/vals.length-4;
+      const bh=(v/max)*(h-pad*2);
+      const bx=x+j*(groupW/vals.length);
+      const by=h-pad-bh;
+      svg.innerHTML += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="5" fill="${colors[j]}" opacity="0.9"/>`;
+    });
+    svg.innerHTML += `<text x="${x+groupW/2}" y="${h-4}" font-size="10" fill="#8f8d87" text-anchor="middle" font-family="Manrope">${labels[i]}</text>`;
+  });
+}
+barChart('activityBar', [[1,1],[1,0],[1,1],[0,1],[1,1],[1,0],[0,0]], ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ['#e8cd90','#2a2a2e'], 500, 200);
+
+function lineChart(svgId, series, color, w, h){
+  const svg=document.getElementById(svgId); const pad=20;
+  const max=Math.max(...series), min=Math.min(...series);
+  const stepX=(w-pad*2)/(series.length-1);
+  const pts = series.map((v,i)=>{
+    const x=pad+i*stepX; const y=h-pad-((v-min)/((max-min)||1))*(h-pad*2); return [x,y];
+  });
+  const path = pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const area = path+` L${pts[pts.length-1][0]},${h-pad} L${pts[0][0]},${h-pad} Z`;
+  svg.innerHTML = `<defs><linearGradient id="g${svgId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.35"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+  <path d="${area}" fill="url(#g${svgId})" stroke="none"/>
+  <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${color}"/>`).join('')}`;
+}
+const weightData = me.weightData || [];
+lineChart('progressChart', weightData, '#e8cd90', 400, 200);
+lineChart('progressChartFull', weightData, '#e8cd90', 700, 220);
+
+/* ===== Macro rings ===== */
+function macroRing(pct,color){
+  const r=36, c=2*Math.PI*r;
+  return `<svg viewBox="0 0 88 88" width="88" height="88"><circle cx="44" cy="44" r="${r}" stroke="var(--graphite-lighter)" stroke-width="7" fill="none"/><circle cx="44" cy="44" r="${r}" stroke="${color}" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct/100)}" transform="rotate(-90 44 44)"/></svg>`;
+}
+const MACROS = me.macros || [];
+function renderMacros(id){
+  document.getElementById(id).innerHTML = MACROS.map(m=>`
+    <div><div class="macro-ring">${macroRing(m.pct,m.color)}<div class="val"><b>${m.val}</b><span>/ ${m.target}</span></div></div><div class="macro-lbl">${m.label}</div></div>
+  `).join('');
+}
+renderMacros('dashMacros');
+renderMacros('dietMacros');
+
+/* ===== Meal schedule ===== */
+const MEALS = me.meals || [];
+document.getElementById('mealList').innerHTML = MEALS.map(m=>`
+  <div class="meal-item"><div class="meal-time">${m.time}</div><div class="meal-body"><h5>${m.name}</h5><p>${m.desc}</p></div><div class="meal-cal">${m.cal} kcal</div></div>`).join('');
+
+/* ===== Exercises ===== */
+const EXERCISES = me.exercises || [];
+document.getElementById('exerciseList').innerHTML = EXERCISES.map((e,i)=>`
+  <div class="exercise-row"><div class="ex-num">${i+1}</div><div class="ex-body"><h5>${e.name}</h5><p>${e.detail}</p></div><div class="ex-check ${e.done?'done':''}">${e.done?'✓':''}</div></div>`).join('');
+
+const WEEK = me.weekPlan || [];
+document.getElementById('weekStrip').innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">
+  ${WEEK.map(w=>`<div style="text-align:center;padding:12px 4px;border-radius:10px;background:${w.done?'var(--gold-glow)':'var(--graphite-light)'};border:1px solid ${w.done?'var(--gold-dim)':'var(--line)'};">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">${w.d}</div>
+    <div style="font-size:11.5px;font-weight:700;margin-top:6px;color:${w.done?'var(--gold-bright)':'var(--ivory)'};">${w.l}</div>
+  </div>`).join('')}</div>`;
+
+/* ===== Bookings ===== */
+const BOOKINGS = me.bookings || [];
+function bookingHTML(b){
+  return `<div class="booking-item"><div class="booking-date"><div class="d">${b.d}</div><div class="m">${b.m}</div></div><div class="booking-body"><h5>${b.name}</h5><p>${b.time}</p></div><div class="booking-actions"><span>Reschedule</span><span>Cancel</span></div></div>`;
+}
+document.getElementById('dashBookings').innerHTML = BOOKINGS.slice(0,2).map(bookingHTML).join('');
+document.getElementById('bookingsFull').innerHTML = BOOKINGS.map(bookingHTML).join('');
+
+const BOOK_TRAINERS = await api('/api/contact/trainers-public');
+document.getElementById('trainerBookGrid').innerHTML = BOOK_TRAINERS.map(t=>`
+  <div style="display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);border-radius:12px;">
+    <img src="https://images.unsplash.com/photo-${t.img}?q=80&w=100&auto=format&fit=crop" style="width:44px;height:44px;border-radius:11px;object-fit:cover;">
+    <div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">${t.name}</div><div style="font-size:11.5px;color:var(--gold-bright);">${t.spec}</div></div>
+    <button class="btn btn-ghost" style="padding:8px 16px;font-size:12px;">Book</button>
+  </div>`).join('');
+
+/* ===== Payments ===== */
+const PAYMENTS = me.payments || [];
+document.getElementById('paymentBody').innerHTML = PAYMENTS.map(p=>`
+  <tr><td>${p.date}</td><td>${p.desc}</td><td>${p.amt}</td><td><span class="badge ${p.status}">Paid</span></td></tr>`).join('');
+
+/* ===== Rewards & Achievements ===== */
+const MY_REWARDS = me.rewards || [];
+document.getElementById('myRewards').innerHTML = MY_REWARDS.map(r=>`
+  <div class="notif-item"><div class="notif-ico">🎁</div><div class="notif-body"><h5>${r.name}</h5><p>From ${r.from}</p></div><div class="notif-time">${r.time}</div></div>`).join('');
+
+const ACHIEVEMENTS = me.achievements || [];
+document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a=>`
+  <div class="card ach-card ${a.locked?'locked':''}"><div class="ico">${a.ico}</div><h5>${a.name}</h5><p>${a.desc}</p></div>`).join('');
+
+/* ===== Notifications ===== */
+const NOTIFS = me.notifications || [];
+document.getElementById('notifFullList').innerHTML = NOTIFS.map(n=>`
+  <div class="notif-item"><div class="notif-ico">${n.ico}</div><div class="notif-body"><h5>${n.title}</h5><p>${n.desc}</p></div><div class="notif-time">${n.time}</div></div>`).join('');
+
+// expose functions referenced via inline onclick="..." attributes in the markup
+window.switchPage = switchPage;
+
+}

@@ -1,0 +1,484 @@
+{
+  "MEMBERS": [
+    {
+      "name": "Ishaan Verma",
+      "email": "ishaan.v@mail.com",
+      "img": "1500648767791-00dcc994a43e",
+      "plan": "Elite",
+      "trainer": "Marcus Reid",
+      "join": "12 Jan 2026",
+      "expiry": "12 Jan 2027",
+      "att": 82,
+      "bmi": 23.4,
+      "fee": "green"
+    },
+    {
+      "name": "Naina Kapoor",
+      "email": "naina.k@mail.com",
+      "img": "1544005313-94ddf0286df2",
+      "plan": "Private",
+      "trainer": "Elena Cross",
+      "join": "03 Feb 2026",
+      "expiry": "03 Feb 2027",
+      "att": 95,
+      "bmi": 21.8,
+      "fee": "green"
+    },
+    {
+      "name": "Rohan Malhotra",
+      "email": "rohan.m@mail.com",
+      "img": "1507003211169-0a1dd7228f2d",
+      "plan": "Essential",
+      "trainer": "Jordan Blake",
+      "join": "18 Mar 2026",
+      "expiry": "18 Apr 2026",
+      "att": 64,
+      "bmi": 26.1,
+      "fee": "red"
+    },
+    {
+      "name": "Ayesha Khan",
+      "email": "ayesha.k@mail.com",
+      "img": "1534528741775-53994a69daeb",
+      "plan": "Elite",
+      "trainer": "Sofia Novak",
+      "join": "27 Apr 2026",
+      "expiry": "27 Apr 2027",
+      "att": 88,
+      "bmi": 22,
+      "fee": "gold"
+    },
+    {
+      "name": "Vikram Rao",
+      "email": "vikram.r@mail.com",
+      "img": "1500048993953-d23a436266cf",
+      "plan": "Essential",
+      "trainer": "Marcus Reid",
+      "join": "09 May 2026",
+      "expiry": "09 Jun 2026",
+      "att": 71,
+      "bmi": 24.6,
+      "fee": "green"
+    },
+    {
+      "name": "Priya Sharma",
+      "email": "priya.s@mail.com",
+      "img": "1487412720507-e7ab37603c6f",
+      "plan": "Private",
+      "trainer": "Elena Cross",
+      "join": "14 Jun 2026",
+      "expiry": "14 Jun 2027",
+      "att": 91,
+      "bmi": 20.9,
+      "fee": "green"
+    },
+    {
+      "name": "Karan Singh",
+      "email": "karan.s@mail.com",
+      "img": "1519345182560-3f2917c472ef",
+      "plan": "Elite",
+      "trainer": "Jordan Blake",
+      "join": "22 Jun 2026",
+      "expiry": "22 Jul 2026",
+      "att": 58,
+      "bmi": 27.3,
+      "fee": "red"
+    },
+    {
+      "name": "Meera Iyer",
+      "email": "meera.i@mail.com",
+      "img": "1544725176-7c40e5a71c5e",
+      "plan": "Essential",
+      "trainer": "Sofia Novak",
+      "join": "30 Jun 2026",
+      "expiry": "30 Jul 2026",
+      "att": 76,
+      "bmi": 22.9,
+      "fee": "gold"
+    }
+  ],
+  "TXNS": [
+    {
+      "name": "Ishaan Verma",
+      "amt": "₹15,000",
+      "method": "UPI",
+      "status": "green"
+    },
+    {
+      "name": "Naina Kapoor",
+      "amt": "₹29,000",
+      "method": "Card",
+      "status": "green"
+    },
+    {
+      "name": "Rohan Malhotra",
+      "amt": "₹8,500",
+      "method": "Cash",
+      "status": "red"
+    },
+    {
+      "name": "Ayesha Khan",
+      "amt": "₹15,000",
+      "method": "UPI",
+      "status": "gold"
+    },
+    {
+      "name": "Vikram Rao",
+      "amt": "₹8,500",
+      "method": "Net Banking",
+      "status": "green"
+    }
+  ],
+  "TRAINERS": [
+    {
+      "name": "Marcus Reid",
+      "spec": "Strength Director",
+      "img": "1571019613454-1cb2f99b2d8b",
+      "clients": 64,
+      "rating": 4.9,
+      "sessions": 8
+    },
+    {
+      "name": "Elena Cross",
+      "spec": "Transformation Coach",
+      "img": "1594381898411-846e7d193883",
+      "clients": 58,
+      "rating": 4.8,
+      "sessions": 6
+    },
+    {
+      "name": "Jordan Blake",
+      "spec": "Performance Coach",
+      "img": "1526506118085-60ce8714f8c5",
+      "clients": 47,
+      "rating": 4.7,
+      "sessions": 9
+    },
+    {
+      "name": "Sofia Novak",
+      "spec": "Mobility & Recovery",
+      "img": "1571388208497-71bedc66e932",
+      "clients": 52,
+      "rating": 4.9,
+      "sessions": 7
+    }
+  ],
+  "NOTIFS": [
+    {
+      "icon": "pending",
+      "color": "red",
+      "title": "12 Memberships Expiring",
+      "desc": "Renewal reminders due within 3 days",
+      "time": "5m ago"
+    },
+    {
+      "icon": "fees",
+      "color": "gold",
+      "title": "Fee Overdue — Rohan Malhotra",
+      "desc": "Payment of ₹8,500 pending since 5 days",
+      "time": "22m ago"
+    },
+    {
+      "icon": "admission",
+      "color": "green",
+      "title": "New Admission",
+      "desc": "Ayesha Khan joined the Elite plan",
+      "time": "1h ago"
+    },
+    {
+      "icon": "equipment",
+      "color": "red",
+      "title": "Low Stock Alert",
+      "desc": "Whey Protein (Chocolate) — 4 units left",
+      "time": "2h ago"
+    },
+    {
+      "icon": "reviews",
+      "color": "gold",
+      "title": "New 5★ Review",
+      "desc": "Priya Sharma rated Elena Cross",
+      "time": "4h ago"
+    },
+    {
+      "icon": "staff",
+      "color": "blue",
+      "title": "Trainer Leave Request",
+      "desc": "Jordan Blake requested leave for Jul 14",
+      "time": "6h ago"
+    }
+  ],
+  "STREAKS": [
+    {
+      "name": "Naina Kapoor",
+      "img": "1544005313-94ddf0286df2",
+      "current": 62,
+      "longest": 74,
+      "last": "Today, 6:40 AM",
+      "tier": "diamond"
+    },
+    {
+      "name": "Priya Sharma",
+      "img": "1487412720507-e7ab37603c6f",
+      "current": 41,
+      "longest": 41,
+      "last": "Today, 7:10 AM",
+      "tier": "gold"
+    },
+    {
+      "name": "Ishaan Verma",
+      "img": "1500648767791-00dcc994a43e",
+      "current": 28,
+      "longest": 52,
+      "last": "Today, 8:02 AM",
+      "tier": "gold"
+    },
+    {
+      "name": "Ayesha Khan",
+      "img": "1534528741775-53994a69daeb",
+      "current": 19,
+      "longest": 33,
+      "last": "Yesterday, 6:50 PM",
+      "tier": "silver"
+    },
+    {
+      "name": "Meera Iyer",
+      "img": "1544725176-7c40e5a71c5e",
+      "current": 14,
+      "longest": 22,
+      "last": "Today, 9:15 AM",
+      "tier": "silver"
+    },
+    {
+      "name": "Vikram Rao",
+      "img": "1500048993953-d23a436266cf",
+      "current": 9,
+      "longest": 19,
+      "last": "Yesterday, 7:30 AM",
+      "tier": "bronze"
+    },
+    {
+      "name": "Karan Singh",
+      "img": "1519345182560-3f2917c472ef",
+      "current": 6,
+      "longest": 15,
+      "last": "Today, 6:05 PM",
+      "tier": "bronze"
+    },
+    {
+      "name": "Rohan Malhotra",
+      "img": "1507003211169-0a1dd7228f2d",
+      "current": 3,
+      "longest": 11,
+      "last": "2 days ago",
+      "tier": "bronze"
+    }
+  ],
+  "TIER_META": {
+    "bronze": {
+      "label": "Bronze · 3+ days",
+      "color": "tier-bronze",
+      "dotBg": "rgba(180,120,70,0.16)",
+      "emoji": "🔥"
+    },
+    "silver": {
+      "label": "Silver · 10+ days",
+      "color": "tier-silver",
+      "dotBg": "rgba(190,190,200,0.16)",
+      "emoji": "⚡"
+    },
+    "gold": {
+      "label": "Gold · 25+ days",
+      "color": "tier-gold",
+      "dotBg": "var(--gold-glow)",
+      "emoji": "🏆"
+    },
+    "diamond": {
+      "label": "Diamond · 50+ days",
+      "color": "tier-diamond",
+      "dotBg": "rgba(122,166,214,0.16)",
+      "emoji": "💎"
+    }
+  },
+  "REWARD_HISTORY": [
+    {
+      "name": "Naina Kapoor",
+      "img": "1544005313-94ddf0286df2",
+      "reward": "Free PT Session",
+      "time": "2 days ago"
+    },
+    {
+      "name": "Priya Sharma",
+      "img": "1487412720507-e7ab37603c6f",
+      "reward": "Discount Voucher",
+      "time": "4 days ago"
+    },
+    {
+      "name": "Ishaan Verma",
+      "img": "1500648767791-00dcc994a43e",
+      "reward": "Free Supplement",
+      "time": "1 week ago"
+    }
+  ],
+  "KPIS": [
+    {
+      "icon": "members",
+      "label": "Total Members",
+      "val": "2,481",
+      "growth": "+8.2%",
+      "up": true,
+      "data": [
+        4,
+        6,
+        5,
+        8,
+        7,
+        9,
+        10
+      ]
+    },
+    {
+      "icon": "attendance",
+      "label": "Active Members",
+      "val": "2,196",
+      "growth": "+4.1%",
+      "up": true,
+      "data": [
+        6,
+        5,
+        7,
+        8,
+        7,
+        9,
+        9
+      ]
+    },
+    {
+      "icon": "admission",
+      "label": "New Admissions",
+      "val": "142",
+      "growth": "+21.6%",
+      "up": true,
+      "data": [
+        2,
+        3,
+        4,
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "icon": "attendance",
+      "label": "Today's Attendance",
+      "val": "846",
+      "growth": "+3.4%",
+      "up": true,
+      "data": [
+        5,
+        6,
+        5,
+        7,
+        8,
+        6,
+        9
+      ]
+    },
+    {
+      "icon": "revenue",
+      "label": "Monthly Revenue",
+      "val": "₹9.8L",
+      "growth": "+15.2%",
+      "up": true,
+      "data": [
+        3,
+        4,
+        5,
+        5,
+        7,
+        8,
+        10
+      ]
+    },
+    {
+      "icon": "pending",
+      "label": "Pending Fees",
+      "val": "₹2.1L",
+      "growth": "-3.1%",
+      "up": false,
+      "data": [
+        9,
+        8,
+        7,
+        7,
+        6,
+        5,
+        4
+      ]
+    },
+    {
+      "icon": "plans",
+      "label": "Renewals Due",
+      "val": "87",
+      "growth": "+6.0%",
+      "up": true,
+      "data": [
+        3,
+        4,
+        4,
+        5,
+        6,
+        6,
+        7
+      ]
+    },
+    {
+      "icon": "personal",
+      "label": "PT Bookings",
+      "val": "318",
+      "growth": "+11.4%",
+      "up": true,
+      "data": [
+        4,
+        5,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "icon": "store",
+      "label": "Supplement Orders",
+      "val": "204",
+      "growth": "+9.8%",
+      "up": true,
+      "data": [
+        3,
+        4,
+        5,
+        6,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "icon": "equipment",
+      "label": "Low Stock Alerts",
+      "val": "6",
+      "growth": "+2",
+      "up": false,
+      "data": [
+        2,
+        2,
+        3,
+        4,
+        4,
+        5,
+        6
+      ]
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+
+<div class="app">
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-mark">A</div>
+<div><div class="brand-name">APEX <span>ID</span></div><div class="brand-sub">Member Panel</div></div>
+</div>
+<div class="user-mini">
+<img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&amp;w=200&amp;auto=format&amp;fit=crop"/>
+<div><div class="n">Ishaan Verma</div><div class="p">🔥 28-day streak</div></div>
+</div>
+<div id="navContainer"></div>
+<div class="sidebar-footer">
+<div class="nav-item"><svg class="icon" viewbox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>Logout</div>
+</div>
+</aside>
+<div class="main">
+<div class="topbar">
+<div class="topbar-left">
+<div class="page-title" id="pageTitle">My Dashboard</div>
+<div class="search-box"><svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg><input placeholder="Search classes, trainers..."/></div>
+</div>
+<div class="topbar-right">
+<div class="streak-chip">🔥 28</div>
+<div class="tb-btn" onclick="switchPage('notifications')"><svg class="icon" viewbox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg><span class="tb-dot"></span></div>
+<div class="tb-btn"><svg class="icon" viewbox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
+<div class="book-btn" onclick="switchPage('bookings')">+ Book Session</div>
+<div class="admin-chip"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&amp;w=200&amp;auto=format&amp;fit=crop"/><div><div class="name">Ishaan Verma</div><div class="role">Elite Member</div></div></div>
+</div>
+</div>
+<div class="content">
+<!-- ================= DASHBOARD ================= -->
+<section class="page active" id="page-dashboard">
+<div class="breadcrumb">My Panel / <span>Dashboard</span></div>
+<div class="page-head"><div><h2>Welcome back, Ishaan 👋</h2><p>Tuesday, July 8, 2026 · Let's keep the streak alive today.</p></div></div>
+<div class="reward-banner">
+<div class="rb-ico">🎁</div>
+<div><h4>You've earned: Free Supplement Pack</h4><p>Gifted by the Apex team — "Amazing consistency this month, keep crushing it!"</p></div>
+<button class="btn btn-gold">Claim Reward</button>
+</div>
+<div class="hero-grid">
+<div class="card streak-hero">
+<div class="flame-big">🔥</div>
+<div class="num">28</div>
+<div class="lbl">Day Streak — Gold Tier</div>
+<div class="mini-heat" id="dashHeat"></div>
+</div>
+<div class="card stat-card">
+<div class="top"><div class="ring-wrap"><svg height="56" viewbox="0 0 56 56" width="56"><circle cx="28" cy="28" fill="none" r="24" stroke="var(--graphite-lighter)" stroke-width="5"></circle><circle cx="28" cy="28" fill="none" r="24" stroke="var(--gold-bright)" stroke-dasharray="150.7" stroke-dashoffset="30" stroke-linecap="round" stroke-width="5" transform="rotate(-90 28 28)"></circle></svg><div class="ring-val">80%</div></div></div>
+<div class="val">80%</div><div class="lbl">Attendance This Month</div>
+</div>
+<div class="card stat-card">
+<div class="top"><div class="ring-wrap"><svg height="56" viewbox="0 0 56 56" width="56"><circle cx="28" cy="28" fill="none" r="24" stroke="var(--graphite-lighter)" stroke-width="5"></circle><circle cx="28" cy="28" fill="none" r="24" stroke="var(--blue)" stroke-dasharray="150.7" stroke-dashoffset="45" stroke-linecap="round" stroke-width="5" transform="rotate(-90 28 28)"></circle></svg><div class="ring-val">70%</div></div></div>
+<div class="val">128 days</div><div class="lbl">Membership Remaining</div>
+<button class="btn btn-ghost">Renew Now</button>
+</div>
+<div class="card stat-card">
+<div class="top"><div class="kpi-icon" style="width:42px;height:42px;border-radius:12px;background:var(--gold-glow);display:flex;align-items:center;justify-content:center;">💪</div></div>
+<div class="val">Push Day</div><div class="lbl">Today's Workout · 45 min</div>
+<button class="btn btn-gold" onclick="switchPage('workouts')">Start Workout</button>
+</div>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Weekly Activity</h3><div class="sub">Workouts completed vs planned</div></div></div>
+<svg height="200" id="activityBar" viewbox="0 0 500 200" width="100%"></svg>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Upcoming Bookings</h3></div><button class="btn btn-ghost" onclick="switchPage('bookings')" style="padding:8px 14px;font-size:12px;">View all</button></div>
+<div id="dashBookings"></div>
+</div>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Today's Nutrition</h3><div class="sub">1,840 / 2,400 kcal consumed</div></div></div>
+<div class="macro-grid" id="dashMacros"></div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Body Progress</h3><div class="sub">Weight trend — last 8 weeks</div></div></div>
+<svg height="200" id="progressChart" viewbox="0 0 400 200" width="100%"></svg>
+</div>
+</div>
+</section>
+<!-- ================= WORKOUTS ================= -->
+<section class="page" id="page-workouts">
+<div class="breadcrumb">My Panel / <span>My Workouts</span></div>
+<div class="page-head"><div><h2>My Workouts</h2><p>Assigned by Marcus Reid · Strength &amp; Power Program</p></div><div class="head-actions"><button class="btn btn-gold">✓ Mark Workout Complete</button></div></div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Today — Push Day</h3><div class="sub">Chest · Shoulders · Triceps · 45 min</div></div></div>
+<div id="exerciseList"></div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>This Week</h3></div></div>
+<div id="weekStrip"></div>
+<div class="panel-head" style="margin-top:26px;"><div><h3>Browse Programs</h3></div></div>
+<div class="grid-3" style="margin-bottom:0;">
+<div class="program-mini"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&amp;w=600&amp;auto=format&amp;fit=crop"/><span>Strength</span></div>
+<div class="program-mini"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&amp;w=600&amp;auto=format&amp;fit=crop"/><span>HIIT</span></div>
+<div class="program-mini"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&amp;w=600&amp;auto=format&amp;fit=crop"/><span>Mobility</span></div>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= DIET ================= -->
+<section class="page" id="page-diet">
+<div class="breadcrumb">My Panel / <span>My Diet Plan</span></div>
+<div class="page-head"><div><h2>My Diet Plan</h2><p>Custom nutrition plan by Elena Cross · Lean Muscle Phase</p></div></div>
+<div class="card panel" style="margin-bottom:20px;">
+<div class="panel-head"><div><h3>Today's Macros</h3><div class="sub">1,840 / 2,400 kcal</div></div></div>
+<div class="macro-grid" id="dietMacros"></div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Meal Schedule</h3></div></div>
+<div id="mealList"></div>
+</div>
+</section>
+<!-- ================= STREAK & REWARDS ================= -->
+<section class="page" id="page-streak">
+<div class="breadcrumb">My Panel / <span>Streak &amp; Rewards</span></div>
+<div class="page-head"><div><h2>Streak &amp; Rewards</h2><p>Consistency pays off — literally.</p></div></div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>🔥 28-Day Streak</h3><div class="sub">Longest ever: 52 days</div></div><span class="badge gold">🏆 Gold Tier</span></div>
+<div class="mini-heat" id="fullHeat" style="grid-template-columns:repeat(21,1fr);"></div>
+<div class="tier-progress">
+<div class="tier-track"><i style="width:56%"></i></div>
+<div class="tier-labels"><span>Bronze</span><span>Silver</span><span class="active">Gold</span><span>Diamond (50)</span></div>
+</div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Rewards Received</h3></div></div>
+<div id="myRewards"></div>
+</div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Achievements</h3><div class="sub">Badges you've unlocked along the way</div></div></div>
+<div class="ach-grid" id="achGrid"></div>
+</div>
+</section>
+<!-- ================= BOOKINGS ================= -->
+<section class="page" id="page-bookings">
+<div class="breadcrumb">My Panel / <span>My Bookings</span></div>
+<div class="page-head"><div><h2>My Bookings</h2><p>Manage your PT sessions and group classes</p></div><div class="head-actions"><button class="btn btn-gold">+ New Booking</button></div></div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Upcoming</h3></div></div>
+<div id="bookingsFull"></div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Book With a Trainer</h3></div></div>
+<div id="trainerBookGrid" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+</div>
+</section>
+<!-- ================= MEMBERSHIP ================= -->
+<section class="page" id="page-membership">
+<div class="breadcrumb">My Panel / <span>Membership &amp; Billing</span></div>
+<div class="page-head"><div><h2>Membership &amp; Billing</h2><p>Manage your plan and payment history</p></div><div class="head-actions"><button class="btn btn-ghost">Download Invoices</button><button class="btn btn-gold">Upgrade Plan</button></div></div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Elite Plan</h3><div class="sub">Renews on Jan 12, 2027 · 128 days left</div></div><span class="badge green">Active</span></div>
+<div class="tier-track" style="margin-top:6px;"><i style="width:70%"></i></div>
+<p style="font-size:12.5px;color:var(--muted);margin-top:14px;">$179/mo · 2x personal training/week, custom nutrition plan, recovery suite access.</p>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Payment Method</h3></div></div>
+<div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--graphite-light);border-radius:12px;border:1px solid var(--line);">
+<div style="width:44px;height:30px;background:var(--gold);border-radius:6px;"></div>
+<div><div style="font-weight:700;font-size:13.5px;">•••• •••• •••• 4831</div><div style="font-size:11.5px;color:var(--muted);">Expires 08/28</div></div>
+</div>
+</div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Payment History</h3></div></div>
+<table><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody id="paymentBody"></tbody></table>
+</div>
+</section>
+<!-- ================= PROGRESS ================= -->
+<section class="page" id="page-progress">
+<div class="breadcrumb">My Panel / <span>My Progress</span></div>
+<div class="page-head"><div><h2>My Progress</h2><p>Track your transformation over time</p></div></div>
+<div class="card panel" style="margin-bottom:20px;">
+<div class="panel-head"><div><h3>Weight Trend</h3><div class="sub">Last 8 weeks</div></div></div>
+<svg height="220" id="progressChartFull" viewbox="0 0 700 220" width="100%"></svg>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Body Measurements</h3></div></div>
+<table><thead><tr><th>Metric</th><th>Start</th><th>Current</th><th>Change</th></tr></thead>
+<tbody>
+<tr><td>Weight</td><td>84.2 kg</td><td>78.6 kg</td><td><span class="badge green">-5.6 kg</span></td></tr>
+<tr><td>Body Fat</td><td>24.5%</td><td>19.1%</td><td><span class="badge green">-5.4%</span></td></tr>
+<tr><td>Waist</td><td>36 in</td><td>32.5 in</td><td><span class="badge green">-3.5 in</span></td></tr>
+<tr><td>Chest</td><td>39 in</td><td>41.2 in</td><td><span class="badge gold">+2.2 in</span></td></tr>
+</tbody>
+</table>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Current Goal</h3></div></div>
+<p style="font-size:13.5px;color:var(--muted);line-height:1.7;">Reach 16% body fat by <strong style="color:var(--ivory)">September 30, 2026</strong> while maintaining current strength numbers.</p>
+<div class="tier-track" style="margin-top:18px;"><i style="width:64%"></i></div>
+<p style="font-size:12px;color:var(--gold-bright);margin-top:10px;font-weight:700;">64% to goal</p>
+</div>
+</div>
+</section>
+<!-- ================= NOTIFICATIONS ================= -->
+<section class="page" id="page-notifications">
+<div class="breadcrumb">My Panel / <span>Notifications</span></div>
+<div class="page-head"><div><h2>Notifications</h2><p>Stay on top of everything</p></div></div>
+<div class="card panel" id="notifFullList"></div>
+</section>
+<!-- ================= SETTINGS ================= -->
+<section class="page" id="page-settings">
+<div class="breadcrumb">My Panel / <span>Settings</span></div>
+<div class="page-head"><div><h2>Settings</h2><p>Manage your profile and preferences</p></div><div class="head-actions"><button class="btn btn-gold">Save Changes</button></div></div>
+<div class="settings-grid">
+<div class="card panel">
+<h3 style="font-family:var(--serif);font-size:16px;margin-bottom:6px;">Profile</h3>
+<div class="setting-row"><div><h5>Name</h5><p>Ishaan Verma</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
+<div class="setting-row"><div><h5>Email</h5><p>ishaan.v@mail.com</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
+<div class="setting-row"><div><h5>Phone</h5><p>+91 98765 43210</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
+<div class="setting-row"><div><h5>Password</h5><p>Last changed 3 months ago</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Change</button></div>
+</div>
+<div class="card panel">
+<h3 style="font-family:var(--serif);font-size:16px;margin-bottom:6px;">Preferences</h3>
+<div class="setting-row"><div><h5>Workout Reminders</h5><p>Daily push notification</p></div><div class="toggle on"></div></div>
+<div class="setting-row"><div><h5>Streak Alerts</h5><p>Warn before streak breaks</p></div><div class="toggle on"></div></div>
+<div class="setting-row"><div><h5>Diet Reminders</h5><p>Meal logging nudges</p></div><div class="toggle"></div></div>
+<div class="setting-row"><div><h5>Marketing Emails</h5><p>Offers and gym news</p></div><div class="toggle"></div></div>
+</div>
+</div>
+</section>
+<!-- ================= PLACEHOLDER ================= -->
+<section class="page" id="page-placeholder">
+<div class="breadcrumb">My Panel / <span id="placeholderCrumb">Module</span></div>
+<div class="placeholder">
+<div class="icon-lg" id="placeholderIcon">✨</div>
+<h3 id="placeholderTitle">Module</h3>
+<p>This section follows the same design system — full build-out available on request.</p>
+</div>
+</section>
+</div>
+</div>
+</div>
+

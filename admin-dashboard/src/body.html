@@ -1,0 +1,303 @@
+
+<div class="app">
+<!-- ================= SIDEBAR ================= -->
+<aside class="sidebar" id="sidebar">
+<div class="brand">
+<div class="brand-mark">A</div>
+<div>
+<div class="brand-name">APEX <span>OS</span></div>
+<div class="brand-sub">Fitness Management</div>
+</div>
+</div>
+<div id="navContainer"></div>
+<div class="sidebar-footer">
+<div class="nav-item" data-page="logout"><svg class="icon" viewbox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>Logout</div>
+</div>
+</aside>
+<!-- ================= MAIN ================= -->
+<div class="main">
+<div class="topbar">
+<div class="topbar-left">
+<div class="page-title" id="pageTitle">Dashboard</div>
+<div class="search-box">
+<svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+<input placeholder="Search members, trainers, invoices..." type="text"/>
+<kbd>⌘K</kbd>
+</div>
+</div>
+<div class="topbar-right">
+<div class="datetime">
+<div class="time" id="clock">10:42 AM</div>
+<div id="dateStr">Wed, Jul 08 2026</div>
+</div>
+<div class="tb-btn"><svg class="icon" viewbox="0 0 24 24"><rect height="17" rx="2" width="18" x="3" y="4"></rect><line x1="3" x2="21" y1="9" y2="9"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="16" x2="16" y1="2" y2="6"></line></svg></div>
+<div class="tb-btn"><svg class="icon" viewbox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
+<div class="tb-btn" onclick="switchPage('notifications')"><svg class="icon" viewbox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg><span class="tb-dot"></span></div>
+<div class="toggle" id="themeToggle" onclick="this.classList.toggle('on')"></div>
+<div class="quick-add">+</div>
+<div class="admin-chip">
+<img alt="" src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&amp;w=200&amp;auto=format&amp;fit=crop"/>
+<div>
+<div class="name">Aarav Mehta</div>
+<div class="role">Super Admin</div>
+</div>
+</div>
+</div>
+</div>
+<div class="content">
+<!-- ================= DASHBOARD ================= -->
+<section class="page active" id="page-dashboard">
+<div class="breadcrumb">Home / <span>Dashboard Overview</span></div>
+<div class="page-head">
+<div><h2>Good morning, Aarav 👋</h2><p>Here's what's happening at Apex Fitness today, July 8, 2026.</p></div>
+<div class="head-actions"><button class="btn btn-ghost">Export</button><button class="btn btn-gold">+ New Admission</button></div>
+</div>
+<div class="kpi-grid" id="kpiGrid"></div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head">
+<div><h3>Revenue Overview</h3><div class="sub">Monthly recurring + one-time revenue</div></div>
+<div class="pill-tabs"><span class="active">12M</span><span>6M</span><span>30D</span></div>
+</div>
+<svg height="220" id="revenueChart" viewbox="0 0 720 220" width="100%"></svg>
+<div class="legend">
+<div class="legend-item"><span class="legend-dot" style="background:var(--gold-bright)"></span>Membership Revenue</div>
+<div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Supplement &amp; PT Add-ons</div>
+</div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Membership Distribution</h3><div class="sub">Active plans breakdown</div></div></div>
+<svg height="200" id="donutChart" style="margin:0 auto;display:block;" viewbox="0 0 200 200" width="200"></svg>
+<div class="legend" style="justify-content:center;margin-top:20px;">
+<div class="legend-item"><span class="legend-dot" style="background:var(--gold-bright)"></span>Elite — 46%</div>
+<div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Essential — 34%</div>
+<div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Private — 20%</div>
+</div>
+</div>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Recent Members</h3><div class="sub">Latest admissions &amp; renewals</div></div><button class="btn btn-ghost" onclick="switchPage('members')" style="padding:8px 16px;font-size:12px;">View all</button></div>
+<table>
+<thead><tr><th>Member</th><th>Plan</th><th>Trainer</th><th>Status</th></tr></thead>
+<tbody id="recentMembersBody"></tbody>
+</table>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Live Notifications</h3><div class="sub">Real-time alerts</div></div></div>
+<div id="dashNotifList"></div>
+</div>
+</div>
+</section>
+<!-- ================= MEMBERS ================= -->
+<section class="page" id="page-members">
+<div class="breadcrumb">Home / <span>Member Management</span></div>
+<div class="page-head">
+<div><h2>Members</h2><p>2,481 total members across all membership tiers</p></div>
+<div class="head-actions"><button class="btn btn-ghost">Export CSV</button><button class="btn btn-gold">+ Add Member</button></div>
+</div>
+<div class="card panel">
+<div class="table-toolbar">
+<div class="filters">
+<div class="filter-chip">All Plans ▾</div>
+<div class="filter-chip">Fee Status ▾</div>
+<div class="filter-chip">Trainer ▾</div>
+</div>
+<div class="search-box" style="width:260px;"><svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg><input placeholder="Search members..."/></div>
+</div>
+<table>
+<thead><tr><th>Member</th><th>Plan</th><th>Trainer</th><th>Join Date</th><th>Expiry</th><th>Attendance</th><th>BMI</th><th>Fee Status</th><th></th></tr></thead>
+<tbody id="membersBody"></tbody>
+</table>
+</div>
+</section>
+<!-- ================= ATTENDANCE ================= -->
+<section class="page" id="page-attendance">
+<div class="breadcrumb">Home / <span>Attendance Management</span></div>
+<div class="page-head"><div><h2>Attendance</h2><p>Live check-ins and historical trends</p></div>
+<div class="head-actions"><button class="btn btn-ghost">QR Check-in</button><button class="btn btn-gold">Face Recognition</button></div>
+</div>
+<div class="grid-4">
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon"><svg class="icon" viewbox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div><div class="kpi-val">846</div><div class="kpi-label">Today's Check-ins</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon"><svg class="icon" viewbox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg></div></div><div class="kpi-val">612</div><div class="kpi-label">Today's Check-outs</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon"><svg class="icon" viewbox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg></div></div><div class="kpi-val">234</div><div class="kpi-label">Live in Gym Now</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon"><svg class="icon" viewbox="0 0 24 24"><rect height="7" rx="1" width="7" x="3" y="3"></rect><rect height="7" rx="1" width="7" x="14" y="3"></rect><rect height="7" rx="1" width="7" x="3" y="14"></rect><rect height="7" rx="1" width="7" x="14" y="14"></rect></svg></div></div><div class="kpi-val">94.2%</div><div class="kpi-label">Avg Weekly Rate</div></div>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Weekly Attendance Heatmap</h3><div class="sub">Last 14 days · check-in density</div></div></div>
+<div class="heatmap" id="heatmapGrid"></div>
+<div class="legend"><div class="legend-item">Less</div><div class="heat-cell" data-l="0" style="width:12px;height:12px;"></div><div class="heat-cell" data-l="1" style="width:12px;height:12px;"></div><div class="heat-cell" data-l="2" style="width:12px;height:12px;"></div><div class="heat-cell" data-l="3" style="width:12px;height:12px;"></div><div class="heat-cell" data-l="4" style="width:12px;height:12px;"></div><div class="legend-item">More</div></div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Monthly Attendance</h3><div class="sub">Trend over 6 months</div></div></div>
+<svg height="220" id="attendanceBar" viewbox="0 0 400 220" width="100%"></svg>
+</div>
+</div>
+</section>
+<!-- ================= FEE MANAGEMENT ================= -->
+<section class="page" id="page-fees">
+<div class="breadcrumb">Home / <span>Fee Management</span></div>
+<div class="page-head"><div><h2>Fee Management</h2><p>Track collections, dues, and payment methods</p></div>
+<div class="head-actions"><button class="btn btn-ghost">Send Reminders</button><button class="btn btn-gold">Generate Invoice</button></div>
+</div>
+<div class="grid-4">
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">₹</div><span class="kpi-growth up">↑ 12.4%</span></div><div class="kpi-val">₹18.4L</div><div class="kpi-label">Total Revenue</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">⏳</div><span class="kpi-growth down">↓ 3.1%</span></div><div class="kpi-val">₹2.1L</div><div class="kpi-label">Pending Fees</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">📅</div><span class="kpi-growth up">↑ 8.7%</span></div><div class="kpi-val">₹64,200</div><div class="kpi-label">Today's Collection</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">📈</div><span class="kpi-growth up">↑ 15.2%</span></div><div class="kpi-val">₹9.8L</div><div class="kpi-label">This Month</div></div>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Payment Methods</h3><div class="sub">Distribution of collections</div></div></div>
+<svg height="200" id="paymentDonut" style="margin:0 auto;display:block;" viewbox="0 0 200 200" width="200"></svg>
+<div class="legend" style="justify-content:center;margin-top:20px;">
+<div class="legend-item"><span class="legend-dot" style="background:var(--gold-bright)"></span>UPI — 48%</div>
+<div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Card — 28%</div>
+<div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Cash — 16%</div>
+<div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Net Banking — 8%</div>
+</div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Recent Transactions</h3></div></div>
+<table>
+<thead><tr><th>Member</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+<tbody id="txnBody"></tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- ================= TRAINERS ================= -->
+<section class="page" id="page-trainers">
+<div class="breadcrumb">Home / <span>Trainer Management</span></div>
+<div class="page-head"><div><h2>Trainers</h2><p>42 active coaches across all specializations</p></div>
+<div class="head-actions"><button class="btn btn-gold">+ Add Trainer</button></div>
+</div>
+<div class="grid-4" id="trainerGrid"></div>
+</section>
+<!-- ================= ANALYTICS ================= -->
+<section class="page" id="page-analytics">
+<div class="breadcrumb">Home / <span>Analytics</span></div>
+<div class="page-head"><div><h2>Analytics</h2><p>Deep insights across members, revenue, and performance</p></div></div>
+<div class="grid-2">
+<div class="card panel"><div class="panel-head"><div><h3>Member Growth</h3><div class="sub">New members per month</div></div></div><svg height="200" id="growthChart" viewbox="0 0 720 200" width="100%"></svg></div>
+<div class="card panel"><div class="panel-head"><div><h3>Trainer Performance</h3><div class="sub">Client satisfaction rating</div></div></div><svg height="200" id="trainerBarChart" viewbox="0 0 400 200" width="100%"></svg></div>
+</div>
+<div class="grid-3">
+<div class="card panel"><div class="panel-head"><h3>Workout Popularity</h3></div><svg height="180" id="workoutDonut" style="margin:0 auto;" viewbox="0 0 180 180" width="180"></svg></div>
+<div class="card panel"><div class="panel-head"><h3>Attendance Rate</h3></div><svg height="180" id="attendanceDonut" style="margin:0 auto;" viewbox="0 0 180 180" width="180"></svg></div>
+<div class="card panel"><div class="panel-head"><h3>Fee Collection Rate</h3></div><svg height="180" id="feeDonut" style="margin:0 auto;" viewbox="0 0 180 180" width="180"></svg></div>
+</div>
+</section>
+<!-- ================= NOTIFICATIONS ================= -->
+<section class="page" id="page-notifications">
+<div class="breadcrumb">Home / <span>Notifications</span></div>
+<div class="page-head"><div><h2>Notifications</h2><p>All system alerts in one place</p></div><div class="head-actions"><button class="btn btn-ghost">Mark all read</button></div></div>
+<div class="card panel" id="fullNotifList"></div>
+</section>
+<!-- ================= SETTINGS ================= -->
+<section class="page" id="page-settings">
+<div class="breadcrumb">Home / <span>Settings</span></div>
+<div class="page-head"><div><h2>Settings</h2><p>Configure your gym's business, billing, and security preferences</p></div><div class="head-actions"><button class="btn btn-gold">Save Changes</button></div></div>
+<div class="settings-grid">
+<div class="card panel">
+<h3 style="font-family:var(--serif);font-size:16px;margin-bottom:6px;">Business &amp; Branding</h3>
+<div class="setting-row"><div><h5>Gym Name</h5><p>Apex Fitness Club</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
+<div class="setting-row"><div><h5>GST / Tax ID</h5><p>29AAJCA1234M1Z9</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
+<div class="setting-row"><div><h5>Payment Gateway</h5><p>Razorpay connected</p></div><div class="toggle on"></div></div>
+<div class="setting-row"><div><h5>WhatsApp Integration</h5><p>Automated reminders</p></div><div class="toggle on"></div></div>
+<div class="setting-row"><div><h5>SMS Notifications</h5><p>Fee &amp; renewal alerts</p></div><div class="toggle"></div></div>
+</div>
+<div class="card panel">
+<h3 style="font-family:var(--serif);font-size:16px;margin-bottom:6px;">Security &amp; Access</h3>
+<div class="setting-row"><div><h5>Two-Factor Authentication</h5><p>Extra layer of login security</p></div><div class="toggle on"></div></div>
+<div class="setting-row"><div><h5>User Roles</h5><p>6 roles configured</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Manage</button></div>
+<div class="setting-row"><div><h5>Auto Membership Renewal</h5><p>Charge cards on expiry</p></div><div class="toggle on"></div></div>
+<div class="setting-row"><div><h5>Backup &amp; Restore</h5><p>Last backup: Today, 4:00 AM</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Backup Now</button></div>
+<div class="setting-row"><div><h5>Email Settings</h5><p>SMTP configured</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
+</div>
+</div>
+</section>
+<!-- ================= STREAK TRACKER ================= -->
+<section class="page" id="page-streaks">
+<div class="breadcrumb">Home / <span>Streak Tracker</span></div>
+<div class="page-head">
+<div><h2>Streak Tracker</h2><p>Track member consistency and reward loyalty on your own terms</p></div>
+<div class="head-actions"><button class="btn btn-ghost" onclick="openRewardModal()">🔥 Bulk Reward Top Streaks</button><button class="btn btn-gold" onclick="openRewardModal()">+ Custom Reward</button></div>
+</div>
+<div class="grid-4">
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon"><svg class="icon" viewbox="0 0 24 24"><path d="M12 2c1 3-2 4.5-2 7.5a2 2 0 0 0 4 0c0-1 .5-1.5 1-2 1 2 2 4 2 6.5a5 5 0 0 1-10 0c0-4 2-5.5 3-8 .5-1.3.8-2.6 2-4z"></path></svg></div><span class="kpi-growth up">↑ 18%</span></div><div class="kpi-val">312</div><div class="kpi-label">Members On A Streak</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">🔥</div><span class="kpi-growth up">↑ 2 days</span></div><div class="kpi-val">14.6</div><div class="kpi-label">Avg Streak Length</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">👑</div></div><div class="kpi-val">62</div><div class="kpi-label">Longest Active Streak</div></div>
+<div class="card kpi"><div class="kpi-top"><div class="kpi-icon">🎁</div><span class="kpi-growth up">↑ 6</span></div><div class="kpi-val">23</div><div class="kpi-label">Rewards Sent This Month</div></div>
+</div>
+<div class="grid-2">
+<div class="card panel" style="grid-column:1/-1;">
+<div class="panel-head">
+<div><h3>Streak Leaderboard</h3><div class="sub">Ranked by current active streak · reward manually as you see fit</div></div>
+<div class="filters">
+<div class="filter-chip">All Tiers ▾</div>
+<div class="filter-chip">Sort: Longest Streak ▾</div>
+</div>
+</div>
+<table>
+<thead><tr><th>#</th><th>Member</th><th>Current Streak</th><th>Tier</th><th>Last 14 Days</th><th>Longest Streak</th><th>Last Check-in</th><th>Reward</th></tr></thead>
+<tbody id="streaksBody"></tbody>
+</table>
+</div>
+</div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Streak Tiers</h3><div class="sub">Suggested milestones — rewarding is always your call</div></div></div>
+<div id="tierList"></div>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Recently Sent Rewards</h3></div></div>
+<div id="rewardHistory"></div>
+</div>
+</div>
+</section>
+<!-- ================= GENERIC PLACEHOLDER (shared by remaining modules) ================= -->
+<section class="page" id="page-placeholder">
+<div class="breadcrumb">Home / <span id="placeholderCrumb">Module</span></div>
+<div class="placeholder">
+<div class="icon-lg" id="placeholderIcon"></div>
+<h3 id="placeholderTitle">Module</h3>
+<p>This module follows the same premium design system — full build-out available on request. Ask and I'll design this screen in full detail next.</p>
+</div>
+</section>
+</div>
+</div>
+</div>
+<!-- ================= REWARD MODAL ================= -->
+<div class="modal-overlay" id="rewardModal">
+<div class="modal-box">
+<div class="modal-head"><h3>🔥 Send a Reward</h3><div class="modal-close" onclick="closeRewardModal()">✕</div></div>
+<div class="modal-sub">Recognize consistency on your own terms — no automation, just admin judgement.</div>
+<div class="modal-field">
+<label>Member</label>
+<select id="rewardMember"></select>
+</div>
+<div class="modal-field">
+<label>Reward Type</label>
+<div class="reward-options" id="rewardOptions">
+<div class="reward-opt selected" data-r="Free PT Session">🏋️ Free PT Session</div>
+<div class="reward-opt" data-r="Discount Voucher">🎟️ Discount Voucher</div>
+<div class="reward-opt" data-r="Free Supplement">🥤 Free Supplement</div>
+<div class="reward-opt" data-r="Merch / Gear">👕 Merch / Gear</div>
+<div class="reward-opt" data-r="Guest Pass">🎫 Guest Pass</div>
+<div class="reward-opt" data-r="Custom Deal">✨ Custom Deal</div>
+</div>
+</div>
+<div class="modal-field">
+<label>Note to Member (optional)</label>
+<textarea placeholder="e.g. Amazing consistency this month — enjoy on us!" rows="2"></textarea>
+</div>
+<div class="modal-actions">
+<button class="btn btn-ghost" onclick="closeRewardModal()">Cancel</button>
+<button class="btn btn-gold" onclick="sendReward()">Send Reward 🎁</button>
+</div>
+</div>
+</div>
+
+

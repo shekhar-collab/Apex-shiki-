@@ -1,0 +1,300 @@
+{
+  "ACHIEVEMENTS": [
+    {
+      "ico": "🔥",
+      "name": "7-Day Streak",
+      "desc": "Unlocked",
+      "locked": false
+    },
+    {
+      "ico": "⚡",
+      "name": "25-Day Streak",
+      "desc": "Unlocked",
+      "locked": false
+    },
+    {
+      "ico": "🏆",
+      "name": "50-Day Streak",
+      "desc": "22 days to go",
+      "locked": true
+    },
+    {
+      "ico": "💪",
+      "name": "First PR",
+      "desc": "Unlocked",
+      "locked": false
+    },
+    {
+      "ico": "📅",
+      "name": "Perfect Month",
+      "desc": "Unlocked",
+      "locked": false
+    },
+    {
+      "ico": "💎",
+      "name": "100-Day Streak",
+      "desc": "Locked",
+      "locked": true
+    },
+    {
+      "ico": "🥗",
+      "name": "Nutrition Pro",
+      "desc": "Unlocked",
+      "locked": false
+    },
+    {
+      "ico": "🎯",
+      "name": "Goal Crusher",
+      "desc": "64% there",
+      "locked": true
+    }
+  ],
+  "BOOKINGS": [
+    {
+      "d": "10",
+      "m": "Jul",
+      "name": "Personal Training — Marcus Reid",
+      "time": "6:00 AM – 7:00 AM"
+    },
+    {
+      "d": "11",
+      "m": "Jul",
+      "name": "Group HIIT Class",
+      "time": "6:30 PM – 7:15 PM"
+    },
+    {
+      "d": "14",
+      "m": "Jul",
+      "name": "Recovery & Mobility — Sofia Novak",
+      "time": "5:00 PM – 5:45 PM"
+    }
+  ],
+  "BOOK_TRAINERS": [
+    {
+      "name": "Marcus Reid",
+      "spec": "Strength Director",
+      "img": "1571019613454-1cb2f99b2d8b"
+    },
+    {
+      "name": "Elena Cross",
+      "spec": "Transformation Coach",
+      "img": "1594381898411-846e7d193883"
+    },
+    {
+      "name": "Sofia Novak",
+      "spec": "Mobility & Recovery",
+      "img": "1571388208497-71bedc66e932"
+    }
+  ],
+  "EXERCISES": [
+    {
+      "name": "Barbell Bench Press",
+      "detail": "4 sets × 8 reps · 70kg",
+      "done": true
+    },
+    {
+      "name": "Incline Dumbbell Press",
+      "detail": "3 sets × 10 reps · 24kg",
+      "done": true
+    },
+    {
+      "name": "Cable Fly",
+      "detail": "3 sets × 12 reps",
+      "done": false
+    },
+    {
+      "name": "Overhead Shoulder Press",
+      "detail": "4 sets × 8 reps · 40kg",
+      "done": false
+    },
+    {
+      "name": "Tricep Rope Pushdown",
+      "detail": "3 sets × 15 reps",
+      "done": false
+    }
+  ],
+  "MACROS": [
+    {
+      "label": "Calories",
+      "val": "1840",
+      "target": "2400",
+      "pct": 77,
+      "color": "#e8cd90"
+    },
+    {
+      "label": "Protein",
+      "val": "142g",
+      "target": "180g",
+      "pct": 79,
+      "color": "#7aa6d6"
+    },
+    {
+      "label": "Carbs",
+      "val": "190g",
+      "target": "240g",
+      "pct": 79,
+      "color": "#6fcf97"
+    },
+    {
+      "label": "Fat",
+      "val": "52g",
+      "target": "70g",
+      "pct": 74,
+      "color": "#e2725b"
+    }
+  ],
+  "MEALS": [
+    {
+      "time": "7:00 AM",
+      "name": "Breakfast",
+      "desc": "Oats, egg whites, blueberries",
+      "cal": 420
+    },
+    {
+      "time": "10:30 AM",
+      "name": "Snack",
+      "desc": "Greek yogurt & almonds",
+      "cal": 220
+    },
+    {
+      "time": "1:00 PM",
+      "name": "Lunch",
+      "desc": "Grilled chicken, quinoa, greens",
+      "cal": 560
+    },
+    {
+      "time": "4:30 PM",
+      "name": "Pre-Workout",
+      "desc": "Banana & whey shake",
+      "cal": 280
+    },
+    {
+      "time": "8:00 PM",
+      "name": "Dinner",
+      "desc": "Salmon, sweet potato, broccoli",
+      "cal": 520
+    }
+  ],
+  "MY_REWARDS": [
+    {
+      "name": "Free Supplement Pack",
+      "from": "Apex Team",
+      "time": "Today"
+    },
+    {
+      "name": "Free PT Session",
+      "from": "Marcus Reid",
+      "time": "3 weeks ago"
+    },
+    {
+      "name": "10% Renewal Discount",
+      "from": "Apex Team",
+      "time": "2 months ago"
+    }
+  ],
+  "NOTIFS": [
+    {
+      "ico": "🎁",
+      "title": "Reward Received",
+      "desc": "Free Supplement Pack from the Apex team",
+      "time": "2h ago"
+    },
+    {
+      "ico": "🔥",
+      "title": "Streak Milestone",
+      "desc": "You've hit a 28-day streak — Gold tier unlocked!",
+      "time": "1d ago"
+    },
+    {
+      "ico": "📅",
+      "title": "Upcoming Session",
+      "desc": "PT with Marcus Reid tomorrow at 6:00 AM",
+      "time": "1d ago"
+    },
+    {
+      "ico": "💳",
+      "title": "Payment Successful",
+      "desc": "₹179.00 charged for Elite Plan renewal",
+      "time": "3d ago"
+    },
+    {
+      "ico": "🥗",
+      "title": "Diet Plan Updated",
+      "desc": "Elena updated your macros for this week",
+      "time": "5d ago"
+    }
+  ],
+  "PAYMENTS": [
+    {
+      "date": "Jun 12, 2026",
+      "desc": "Elite Plan — Monthly",
+      "amt": "₹179.00",
+      "status": "green"
+    },
+    {
+      "date": "May 12, 2026",
+      "desc": "Elite Plan — Monthly",
+      "amt": "₹179.00",
+      "status": "green"
+    },
+    {
+      "date": "Apr 12, 2026",
+      "desc": "Elite Plan — Monthly",
+      "amt": "₹179.00",
+      "status": "green"
+    },
+    {
+      "date": "Apr 02, 2026",
+      "desc": "Supplement Order #2291",
+      "amt": "₹42.00",
+      "status": "green"
+    }
+  ],
+  "WEEK": [
+    {
+      "d": "Mon",
+      "l": "Push",
+      "done": true
+    },
+    {
+      "d": "Tue",
+      "l": "Pull",
+      "done": true
+    },
+    {
+      "d": "Wed",
+      "l": "Legs",
+      "done": true
+    },
+    {
+      "d": "Thu",
+      "l": "Rest",
+      "done": false
+    },
+    {
+      "d": "Fri",
+      "l": "Push",
+      "done": false
+    },
+    {
+      "d": "Sat",
+      "l": "Full Body",
+      "done": false
+    },
+    {
+      "d": "Sun",
+      "l": "Rest",
+      "done": false
+    }
+  ],
+  "weightData": [
+    84.2,
+    83.4,
+    82.6,
+    81.7,
+    80.9,
+    80.1,
+    79.3,
+    78.6
+  ]
+}
