@@ -3,8 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently -n backend,landing,admin,member -c blue,green,cyan,magenta \"npm --prefix backend run dev\" \"npm --prefix landing-page run dev -- --host 0.0.0.0 --port 5173\" \"npm --prefix admin-dashboard run dev -- --host 0.0.0.0 --port 5174\" \"npm --prefix member-panel run dev -- --host 0.0.0.0 --port 5175\"",
-    "install:all": "npm install --prefix backend && npm install --prefix landing-page && npm install --prefix admin-dashboard && npm install --prefix member-panel",
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm --prefix backend run dev\" \"npm --prefix landing-page run dev -- --host 0.0.0.0 --port 5173\"",
+    "install:all": "npm install --prefix backend && npm install --prefix landing-page",
     "seed": "npm --prefix backend run seed"
   },
   "devDependencies": {

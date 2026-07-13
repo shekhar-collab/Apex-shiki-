@@ -24,7 +24,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
       login({ token: data.token, user: data.user });
-      navigate(data.user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard', { replace: true });
+      navigate(data.user?.role === 'admin' ? '/admin/dashboard' : '/member/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

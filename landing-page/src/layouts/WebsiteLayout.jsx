@@ -15,7 +15,7 @@ export default function WebsiteLayout() {
     if (isAuthenticated) {
       const displayName = user?.name || (role === 'admin' ? 'Admin' : 'Member');
       const initials = (displayName || 'U').split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-      const dashboardLink = role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
+      const dashboardLink = role === 'admin' ? '/admin/dashboard' : '/member/dashboard';
       const dashboardLabel = role === 'admin' ? 'Admin Panel' : 'My Dashboard';
 
       navAuthSlot.innerHTML = `

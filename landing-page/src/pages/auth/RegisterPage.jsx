@@ -25,7 +25,7 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Registration failed');
       login({ token: data.token, user: data.user });
-      navigate('/user/dashboard', { replace: true });
+      navigate('/member/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {

@@ -107,7 +107,7 @@ export default function HomePage() {
       if (!res.ok) throw new Error(data.message || 'Login failed');
       login({ token: data.token, user: data.user });
       setLoginOpen(false);
-      window.location.assign(data.user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
+      window.location.assign(data.user?.role === 'admin' ? '/admin/dashboard' : '/member/dashboard');
     } catch (err) {
       setLoginError(err.message || 'Login failed');
     } finally {

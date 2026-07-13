@@ -12,6 +12,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import UserDashboardPage from './pages/user/UserDashboardPage';
+import ProfilePage from './pages/user/ProfilePage';
 import PlaceholderPage from './pages/shared/PlaceholderPage';
 
 export const router = createBrowserRouter([
@@ -46,7 +47,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: '/user',
+    path: '/member',
     element: <ProtectedRoute allowedRoles={['member']} />,
     children: [
       {
@@ -54,12 +55,36 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="dashboard" replace /> },
           { path: 'dashboard', element: <UserDashboardPage /> },
-          { path: 'profile', element: <PlaceholderPage title="User Profile" description="Profile management will be routed here." /> },
+          { path: 'profile', element: <ProfilePage /> },
           { path: 'orders', element: <PlaceholderPage title="User Orders" description="Order history will be routed here." /> },
           { path: 'wishlist', element: <PlaceholderPage title="User Wishlist" description="Wishlist will be routed here." /> },
           { path: 'notifications', element: <PlaceholderPage title="User Notifications" description="Notifications will be routed here." /> },
           { path: 'settings', element: <PlaceholderPage title="User Settings" description="Account settings will be routed here." /> },
         ],
+      },
+    ],
+  },
+  {
+    path: '/user',
+    element: <Navigate to="/member/dashboard" replace />,
+  },
+  {
+    path: '/profile',
+    element: <ProtectedRoute allowedRoles={['member']} />,
+    children: [
+      {
+        element: <UserLayout />,
+        children: [{ index: true, element: <ProfilePage /> }],
+      },
+    ],
+  },
+  {
+    path: '/settings',
+    element: <ProtectedRoute allowedRoles={['member']} />,
+    children: [
+      {
+        element: <UserLayout />,
+        children: [{ index: true, element: <PlaceholderPage title="User Settings" description="Account settings will be routed here." /> }],
       },
     ],
   },
