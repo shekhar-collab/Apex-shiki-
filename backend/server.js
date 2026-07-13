@@ -1,9 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const net = require('net');
-const fs = require('fs');
-const path = require('path');
 const connectDB = require('./config/db');
 const demoData = require('./demoData');
 
@@ -68,31 +65,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Unexpected server error' });
 });
 
-function findAvailablePort(startPort) {
-  return new Promise((resolve, reject) => {
-    const tester = net.createServer();
-
-    tester.once('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(findAvailablePort(startPort + 1));
-      } else {
-        reject(err);
-      }
-    });
-
-    tester.once('listening', () => {
-      const address = tester.address();
-      tester.close(() => resolve(address.port));
-    });
-
-    tester.listen(startPort, HOST);
-  });
-}
-
 async function startServer() {
-  const port = await findAvailablePort(DEFAULT_PORT);
-  const runtimePortFile = path.join(__dirname, '.runtime-port');
-  fs.writeFileSync(runtimePortFile, String(port), 'utf8');
+  const port = DEFAULT_PORT;
 
   const server = app.listen(port, HOST, () => {
     console.log(`[server] ✔ Backend Started`);
