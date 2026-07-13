@@ -36,19 +36,6 @@ export default function HomePage() {
       faqCleanups.push(() => item.removeEventListener('click', handler));
     });
 
-    const loginTrigger = container.querySelector('#loginTrigger');
-    if (loginTrigger) {
-      const handleOpenLogin = (event) => {
-        event.preventDefault();
-        setLoginError('');
-        setLoginEmail('');
-        setLoginPassword('');
-        setLoginOpen(true);
-      };
-      loginTrigger.addEventListener('click', handleOpenLogin);
-      faqCleanups.push(() => loginTrigger.removeEventListener('click', handleOpenLogin));
-    }
-
     const form = container.querySelector('.contact-form');
     let submitHandler = null;
     if (form) {
@@ -130,7 +117,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div ref={rootRef} dangerouslySetInnerHTML={{ __html: bodyHtml.replace(/^<header[\s\S]*?<\/header>\s*/i, '') }} />
+      <div ref={rootRef} dangerouslySetInnerHTML={{ __html: bodyHtml }} />
       {loginOpen && (
         <div className="login-modal-overlay" onClick={() => setLoginOpen(false)}>
           <div className="login-modal" onClick={(event) => event.stopPropagation()}>

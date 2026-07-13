@@ -63,10 +63,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Unexpected server error' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 connectDB().then(() => {
-  app.listen(PORT, () => console.log(`[server] APEX backend running on http://localhost:${PORT}`));
+  app.listen(PORT, 'localhost', () => {
+    console.log(`[server] APEX backend running on http://localhost:${PORT}`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[server] Port ${PORT} is in use. Please free the port or change PORT env var.`);
+      process.exit(1);
+    } else {
+      throw err;
+    }
+  });
 }).catch((err) => {
   console.error('[server] Startup failed', err);
   process.exit(1);

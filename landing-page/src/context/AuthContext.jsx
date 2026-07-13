@@ -50,7 +50,9 @@ export function AuthProvider({ children }) {
       window.localStorage.removeItem('apex_admin_user');
     }
 
-    setAuth({ isAuthenticated: true, role, user, token });
+    const newAuth = { isAuthenticated: true, role, user, token };
+    setAuth(newAuth);
+    window.dispatchEvent(new CustomEvent('authChanged', { detail: newAuth }));
   };
 
   const logout = () => {
@@ -58,7 +60,9 @@ export function AuthProvider({ children }) {
     window.localStorage.removeItem('apex_admin_user');
     window.localStorage.removeItem('apex_member_token');
     window.localStorage.removeItem('apex_member_user');
-    setAuth({ isAuthenticated: false, role: null, user: null, token: null });
+    const newAuth = { isAuthenticated: false, role: null, user: null, token: null };
+    setAuth(newAuth);
+    window.dispatchEvent(new CustomEvent('authChanged', { detail: newAuth }));
   };
 
   const value = useMemo(() => ({ ...auth, login, logout }), [auth]);
