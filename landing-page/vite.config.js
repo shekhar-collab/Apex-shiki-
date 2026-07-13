@@ -11,18 +11,6 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
-      '/admin': {
-        target: 'http://localhost:5174',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },
-      '/member': {
-        target: 'http://localhost:5175',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },
     },
   },
 });
