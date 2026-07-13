@@ -1,6 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const net = require('net');
+const fs = require('fs');
+const path = require('path');
 const connectDB = require('./config/db');
 const demoData = require('./demoData');
 
@@ -10,6 +13,8 @@ const memberRoutes = require('./routes/memberRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 
 const app = express();
+const HOST = process.env.HOST || '0.0.0.0';
+const DEFAULT_PORT = Number(process.env.PORT || 5000);
 
 const allowedOrigins = (process.env.CLIENT_ORIGINS || '')
   .split(',')
@@ -63,20 +68,50 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Unexpected server error' });
 });
 
-const PORT = process.env.PORT || 3000;
+function findAvailablePort(startPort) {
+  return new Promise((resolve, reject) => {
+    const tester = net.createServer();
 
-connectDB().then(() => {
-  app.listen(PORT, 'localhost', () => {
-    console.log(`[server] APEX backend running on http://localhost:${PORT}`);
-  }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`[server] Port ${PORT} is in use. Please free the port or change PORT env var.`);
-      process.exit(1);
-    } else {
-      throw err;
-    }
+    tester.once('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(findAvailablePort(startPort + 1));
+      } else {
+        reject(err);
+      }
+    });
+
+    tester.once('listening', () => {
+      const address = tester.address();
+      tester.close(() => resolve(address.port));
+    });
+
+    tester.listen(startPort, HOST);
   });
-}).catch((err) => {
-  console.error('[server] Startup failed', err);
-  process.exit(1);
-});
+}
+
+async function startServer() {
+  const port = await findAvailablePort(DEFAULT_PORT);
+  const runtimePortFile = path.join(__dirname, '.runtime-port');
+  fs.writeFileSync(runtimePortFile, String(port), 'utf8');
+
+  const server = app.listen(port, HOST, () => {
+    console.log(`[server] ✔ Backend Started`);
+    console.log(`[server] ✔ Database Connected`);
+    console.log(`[server] ✔ Authentication Ready`);
+    console.log(`[server] ✔ Admin Routes Loaded`);
+    console.log(`[server] ✔ API Ready`);
+    console.log(`[server] Running successfully on http://${HOST}:${port}`);
+  });
+
+  server.on('error', (err) => {
+    console.error('[server] Failed to start server:', err.message);
+    process.exit(1);
+  });
+}
+
+connectDB()
+  .then(() => startServer())
+  .catch((err) => {
+    console.error('[server] Startup failed', err);
+    process.exit(1);
+  });
