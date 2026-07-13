@@ -1,16 +1,17 @@
 import { useEffect } from 'react';
+import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Navigate } from 'react-router-dom';
 
 export default function UserLayout() {
   const { logout, isAuthenticated, role } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAuthenticated || role !== 'member') {
-      Navigate({ to: '/login' });
+      navigate('/login', { replace: true });
+      return;
     }
 
-    // Wire up logout button in the panel markup
     const logoutItem = document.querySelector('.sidebar-footer .nav-item');
     if (logoutItem) {
       const handleLogout = () => {
@@ -20,11 +21,11 @@ export default function UserLayout() {
       logoutItem.addEventListener('click', handleLogout);
       return () => logoutItem.removeEventListener('click', handleLogout);
     }
-  }, [logout, isAuthenticated, role]);
+  }, [logout, isAuthenticated, role, navigate]);
 
   if (!isAuthenticated || role !== 'member') {
     return <Navigate to="/login" replace />;
   }
 
-  return <div />;
+  return <Outlet />;
 }
