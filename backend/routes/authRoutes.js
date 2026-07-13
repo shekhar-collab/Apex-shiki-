@@ -6,9 +6,10 @@ const Member = require('../models/Member');
 const demoData = require('../demoData');
 
 const router = express.Router();
+const jwtSecret = process.env.JWT_SECRET || 'dev-secret';
 
 function signToken(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET || 'dev-secret', {
+  return jwt.sign(payload, jwtSecret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 }
