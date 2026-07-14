@@ -14,6 +14,12 @@ export async function initAdminDashboard(token, apiBase) {
       return data;
     });
 
+  function normalizeList(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (payload && Array.isArray(payload.items)) return payload.items;
+    return [];
+  }
+
 window.__prefillMember = null;
 document.getElementById('rewardOptions').addEventListener('click', e=>{
   const opt = e.target.closest('.reward-opt'); if(!opt) return;
@@ -287,8 +293,9 @@ for(let i=0;i<42;i++){
 }
 
 /* ============ RECENT MEMBERS + MEMBERS TABLE ============ */
-const MEMBERS = (dashboardSummary.recentMembers || []).concat(await api('/api/admin/members').catch(()=>[]));
-const allMembers = await api('/api/admin/members').catch(()=>[]);
+const membersPayload = await api('/api/admin/members').catch(() => []);
+const MEMBERS = (dashboardSummary.recentMembers || []).concat(normalizeList(membersPayload));
+const allMembers = normalizeList(membersPayload);
 function feeLabel(f){return f==='green'?'Paid':f==='red'?'Overdue':'Partial';}
 document.getElementById('recentMembersBody').innerHTML = (dashboardSummary.recentMembers || []).slice(0,5).map(m=>`
   <tr>
@@ -349,7 +356,7 @@ document.getElementById('dashNotifList').innerHTML = NOTIFS.slice(0,4).map(notif
 document.getElementById('fullNotifList').innerHTML = NOTIFS.map(notifHTML).join('');
 
 /* ============ STREAK TRACKER ============ */
-const STREAKS = await api('/api/admin/streaks');
+const STREAKS = normalizeList(await api('/api/admin/streaks'));
 const TIER_META = {
   bronze:{label:'Bronze · 3+ days', color:'tier-bronze', dotBg:'rgba(180,120,70,0.16)', emoji:'🔥'},
   silver:{label:'Silver · 10+ days', color:'tier-silver', dotBg:'rgba(190,190,200,0.16)', emoji:'⚡'},
@@ -390,7 +397,7 @@ function renderTiers(){
     </div>`;
   }).join('');
 }
-const REWARD_HISTORY = await api('/api/admin/rewards');
+const REWARD_HISTORY = normalizeList(await api('/api/admin/rewards'));
 function renderRewardHistory(){
   document.getElementById('rewardHistory').innerHTML = REWARD_HISTORY.map(r=>`
     <div class="reward-hist-item">
@@ -411,13 +418,13 @@ window.sendReward = sendReward;
 
 async function refreshData() {
   const [members, trainers, attendance, fees, plans, workouts, diets] = await Promise.all([
-    api('/api/admin/members').catch(() => []),
-    api('/api/admin/trainers').catch(() => []),
-    api('/api/admin/attendance').catch(() => []),
-    api('/api/admin/fees').catch(() => []),
-    api('/api/admin/plans').catch(() => []),
-    api('/api/admin/workouts').catch(() => []),
-    api('/api/admin/diets').catch(() => []),
+    api('/api/admin/members').catch(() => []).then(normalizeList),
+    api('/api/admin/trainers').catch(() => []).then(normalizeList),
+    api('/api/admin/attendance').catch(() => []).then(normalizeList),
+    api('/api/admin/fees').catch(() => []).then(normalizeList),
+    api('/api/admin/plans').catch(() => []).then(normalizeList),
+    api('/api/admin/workouts').catch(() => []).then(normalizeList),
+    api('/api/admin/diets').catch(() => []).then(normalizeList),
   ]);
   renderMembers(members);
   TRAINERS = trainers;

@@ -69,11 +69,11 @@ router.get('/dashboard-summary', async (req, res) => {
     const growthSeries = new Array(12).fill(0);
     const attendanceTrend = new Array(6).fill(0);
 
-    const txns = await Transaction.findAll({ where: { createdAt: { [Op.gte]: startOfYear } }, attributes: ['amt', 'amount', 'createdAt'] });
+    const txns = await Transaction.findAll({ where: { createdAt: { [Op.gte]: startOfYear } }, attributes: ['amt', 'createdAt'] });
     txns.forEach((txn) => {
       const date = txn.createdAt || new Date();
       const index = date.getFullYear() === now.getFullYear() ? date.getMonth() : ((date.getMonth() - now.getMonth() + 12) % 12);
-      monthlyRevenue[index] += Number(txn.amt || txn.amount || 0) || 0;
+      monthlyRevenue[index] += Number(txn.amt || 0) || 0;
     });
 
     const membersLastYear = await Member.findAll({ where: { createdAt: { [Op.gte]: startOfYear } }, attributes: ['createdAt'] });

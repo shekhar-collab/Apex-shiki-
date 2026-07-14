@@ -5,6 +5,7 @@ const sequelize = require('../config/database');
 const Admin = require('../models/Admin');
 const Member = require('../models/Member');
 const Trainer = require('../models/Trainer');
+const Attendance = require('../models/Attendance');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
 const RewardHistory = require('../models/RewardHistory');
@@ -32,7 +33,7 @@ async function seed() {
     name: 'Alex Morgan',
     email: 'admin@apex.com',
     passwordHash: adminPasswordHash,
-    role: 'Owner / Admin',
+    role: 'admin',
   });
   console.log('[seed] Admin created -> admin@apex.com / ' + ADMIN_PASSWORD);
 
@@ -78,6 +79,40 @@ async function seed() {
 
   const memberByName = {};
   for (const m of memberDocs) memberByName[m.name] = m;
+
+  const planDocs = await Promise.all((adminData.PLANS || [
+    { name: 'Elite', durationMonths: 12, price: 14999, features: ['Personalized plan', 'Recovery sessions', 'Nutrition support'], status: 'Active' },
+    { name: 'Private', durationMonths: 6, price: 8999, features: ['Dedicated trainer', 'Priority booking', 'Progress review'], status: 'Active' },
+    { name: 'Essential', durationMonths: 1, price: 4999, features: ['Gym access', 'Group classes', 'Recovery room'], status: 'Active' },
+  ]).map((plan) => MembershipPlan.create(plan)));
+  console.log('[seed] Membership plans:', planDocs.length);
+
+  const attendanceDocs = await Promise.all((adminData.ATTENDANCE || [
+    { memberName: 'Ishaan Verma', memberId: '', date: '2026-07-14', status: 'Present', checkInTime: '06:30', checkOutTime: '08:15', notes: 'Great energy' },
+    { memberName: 'Naina Kapoor', memberId: '', date: '2026-07-14', status: 'Present', checkInTime: '07:00', checkOutTime: '08:30', notes: 'Cardio session' },
+    { memberName: 'Rohan Malhotra', memberId: '', date: '2026-07-14', status: 'Absent', checkInTime: '', checkOutTime: '', notes: 'No show' },
+  ]).map((record) => Attendance.create(record)));
+  console.log('[seed] Attendance:', attendanceDocs.length);
+
+  const feeDocs = await Promise.all((adminData.FEES || [
+    { memberName: 'Ishaan Verma', memberId: '', plan: 'Elite', amount: 14999, status: 'Paid', dueDate: '2026-07-12', paidDate: '2026-07-10', method: 'UPI' },
+    { memberName: 'Rohan Malhotra', memberId: '', plan: 'Essential', amount: 4999, status: 'Pending', dueDate: '2026-07-15', paidDate: '', method: 'Cash' },
+    { memberName: 'Priya Sharma', memberId: '', plan: 'Private', amount: 8999, status: 'Overdue', dueDate: '2026-06-28', paidDate: '', method: 'Card' },
+  ]).map((fee) => FeeRecord.create({ ...fee, memberId: memberByName[fee.memberName]?.id || '' })));
+  console.log('[seed] Fees:', feeDocs.length);
+
+  const workoutDocs = await Promise.all((adminData.WORKOUTS || [
+    { name: 'Power Sculpt', category: 'Strength', duration: '45 min', intensity: 'High', trainer: 'Marcus Reid', description: 'Full-body strength circuit' },
+    { name: 'HIIT Flow', category: 'Cardio', duration: '30 min', intensity: 'Medium', trainer: 'Elena Cross', description: 'High-intensity intervals and mobility' },
+    { name: 'Core Ignite', category: 'Core', duration: '25 min', intensity: 'Medium', trainer: 'Jordan Blake', description: 'Core stability and endurance' },
+  ]).map((workout) => WorkoutProgram.create(workout)));
+  console.log('[seed] Workouts:', workoutDocs.length);
+
+  const dietDocs = await Promise.all((adminData.DIETS || [
+    { name: 'Lean Build Plan', goal: 'Muscle gain', calories: 2600, meals: ['Egg scramble', 'Chicken rice bowl', 'Greek yogurt'], trainer: 'Sofia Novak' },
+    { name: 'Fat Loss Reset', goal: 'Weight loss', calories: 1950, meals: ['Protein oats', 'Salad wrap', 'Salmon plate'], trainer: 'Elena Cross' },
+  ]).map((diet) => DietPlan.create(diet)));
+  console.log('[seed] Diets:', dietDocs.length);
 
   const txnDocs = await Promise.all(
     adminData.TXNS.map((t) =>

@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const Member = require('../models/Member');
+const { normalizeRole } = require('../middleware/auth');
 
 const router = express.Router();
 const jwtSecret = process.env.JWT_SECRET || 'dev-secret';
@@ -34,7 +35,7 @@ router.post('/login', async (req, res) => {
       if (ok) {
         const token = signToken({
           id: admin.id,
-          role: (admin.role || 'admin').toString().toLowerCase(),
+          role: normalizeRole(admin.role || 'admin'),
           email: admin.email,
           name: admin.name,
         });
@@ -85,7 +86,7 @@ router.post('/admin/login', async (req, res) => {
 
     const token = signToken({
       id: admin.id,
-      role: (admin.role || 'admin').toString().toLowerCase(),
+      role: normalizeRole(admin.role || 'admin'),
       email: admin.email,
       name: admin.name,
     });
@@ -114,7 +115,7 @@ router.post('/member/login', async (req, res) => {
 
     const token = signToken({
       id: member.id,
-      role: (member.role || 'member').toString().toLowerCase(),
+      role: normalizeRole(member.role || 'member'),
       email: member.email,
       name: member.name,
     });
