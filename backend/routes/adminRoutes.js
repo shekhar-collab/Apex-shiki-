@@ -23,6 +23,19 @@ function canWrite(req) {
   return role === 'admin' || role === 'superadmin';
 }
 
+function parsePagination(req) {
+  const p = Number.parseInt(req.query.page, 10);
+  const l = Number.parseInt(req.query.limit, 10);
+  const page = Number.isNaN(p) ? 1 : Math.max(1, p);
+  const limit = Number.isNaN(l) ? 20 : Math.min(100, Math.max(1, l));
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+}
+
+function isEmail(s) {
+  return typeof s === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
+}
+
 
 
 /* ------------------------------ KPIs ------------------------------ */
@@ -85,26 +98,36 @@ router.get('/dashboard-summary', async (req, res) => {
 
 /* ----------------------------- Members ----------------------------- */
 router.get('/members', async (req, res) => {
-  const { search = '', plan = '', fee = '', trainer = '' } = req.query;
-  const filter = {};
-  if (plan) filter.plan = new RegExp(plan, 'i');
-  if (fee) filter.fee = fee;
-  if (trainer) filter.trainer = new RegExp(trainer, 'i');
-  if (search) {
-    filter.$or = [
-      { name: new RegExp(search, 'i') },
-      { email: new RegExp(search, 'i') },
-      { trainer: new RegExp(search, 'i') },
-    ];
+  try {
+    const { search = '', plan = '', fee = '', trainer = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = {};
+    if (plan) filter.plan = new RegExp(plan, 'i');
+    if (fee) filter.fee = fee;
+    if (trainer) filter.trainer = new RegExp(trainer, 'i');
+    if (search) {
+      filter.$or = [
+        { name: new RegExp(search, 'i') },
+        { email: new RegExp(search, 'i') },
+        { trainer: new RegExp(search, 'i') },
+      ];
+    }
+    const total = await Member.countDocuments(filter);
+    const members = await Member.find(filter).select('-passwordHash').sort({ createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: members, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch members', error: err.message });
   }
-  const members = await Member.find(filter).select('-passwordHash').sort({ createdAt: -1 });
-  res.json(members);
 });
 
 router.get('/members/:id', async (req, res) => {
-  const member = await Member.findById(req.params.id).select('-passwordHash');
-  if (!member) return res.status(404).json({ message: 'Member not found' });
-  res.json(member);
+  try {
+    const member = await Member.findById(req.params.id).select('-passwordHash');
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+    res.json(member);
+  } catch (err) {
+    res.status(400).json({ message: 'Invalid member id', error: err.message });
+  }
 });
 
 router.post('/members', async (req, res) => {
@@ -112,6 +135,7 @@ router.post('/members', async (req, res) => {
     if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can create members' });
     const { name, email, password, plan, trainer, img, fee, att, bmi } = req.body;
     if (!name || !email) return res.status(400).json({ message: 'Name and email are required' });
+    if (!isEmail(email)) return res.status(400).json({ message: 'Invalid email address' });
     const passwordHash = await bcrypt.hash(password || 'Member@123', 10);
     const member = await Member.create({
       name,
@@ -153,14 +177,20 @@ router.delete('/members/:id', async (req, res) => {
 
 /* --------------------------- Attendance --------------------------- */
 router.get('/attendance', async (req, res) => {
-  const { search = '', status = '' } = req.query;
-  const filter = {};
-  if (status) filter.status = status;
-  if (search) {
-    filter.$or = [{ memberName: new RegExp(search, 'i') }, { notes: new RegExp(search, 'i') }];
+  try {
+    const { search = '', status = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = {};
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [{ memberName: new RegExp(search, 'i') }, { notes: new RegExp(search, 'i') }];
+    }
+    const total = await Attendance.countDocuments(filter);
+    const attendance = await Attendance.find(filter).sort({ date: -1, createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: attendance, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch attendance', error: err.message });
   }
-  const attendance = await Attendance.find(filter).sort({ date: -1, createdAt: -1 });
-  res.json(attendance);
 });
 
 router.post('/attendance', async (req, res) => {
@@ -194,20 +224,28 @@ router.delete('/attendance/:id', async (req, res) => {
 
 /* --------------------------- Membership Plans --------------------------- */
 router.get('/plans', async (req, res) => {
-  const { search = '', status = '' } = req.query;
-  const filter = {};
-  if (status) filter.status = status;
-  if (search) {
-    filter.$or = [{ name: new RegExp(search, 'i') }, { features: { $elemMatch: { $regex: search, $options: 'i' } } }];
+  try {
+    const { search = '', status = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = {};
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [{ name: new RegExp(search, 'i') }, { features: { $elemMatch: { $regex: search, $options: 'i' } } }];
+    }
+    const total = await MembershipPlan.countDocuments(filter);
+    const plans = await MembershipPlan.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: plans, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch plans', error: err.message });
   }
-  const plans = await MembershipPlan.find(filter).sort({ createdAt: -1 });
-  res.json(plans);
 });
 
 router.post('/plans', async (req, res) => {
   try {
     if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can manage plans' });
-    const plan = await MembershipPlan.create(req.body);
+    const { name, durationMonths, price, features } = req.body;
+    if (!name || !price) return res.status(400).json({ message: 'Plan name and price are required' });
+    const plan = await MembershipPlan.create({ name, durationMonths, price, features });
     res.status(201).json(plan);
   } catch (error) {
     res.status(400).json({ message: 'Could not create plan', error: error.message });
@@ -233,19 +271,32 @@ router.delete('/plans/:id', async (req, res) => {
 
 /* --------------------------- Fee Management --------------------------- */
 router.get('/fees', async (req, res) => {
-  const { search = '', status = '' } = req.query;
-  const filter = {};
-  if (status) filter.status = status;
-  if (search) {
-    filter.$or = [{ memberName: new RegExp(search, 'i') }, { plan: new RegExp(search, 'i') }];
+  try {
+    const { search = '', status = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = {};
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [{ memberName: new RegExp(search, 'i') }, { plan: new RegExp(search, 'i') }];
+    }
+    const total = await FeeRecord.countDocuments(filter);
+    const fees = await FeeRecord.find(filter).sort({ dueDate: 1, createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: fees, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch fees', error: err.message });
   }
-  const fees = await FeeRecord.find(filter).sort({ dueDate: 1, createdAt: -1 });
-  res.json(fees);
 });
 
 router.get('/pending-fees', async (req, res) => {
-  const fees = await FeeRecord.find({ status: { $ne: 'Paid' } }).sort({ dueDate: 1, createdAt: -1 });
-  res.json(fees);
+  try {
+    const { page, limit, skip } = parsePagination(req);
+    const filter = { status: { $ne: 'Paid' } };
+    const total = await FeeRecord.countDocuments(filter);
+    const fees = await FeeRecord.find(filter).sort({ dueDate: 1, createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: fees, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch pending fees', error: err.message });
+  }
 });
 
 router.post('/fees', async (req, res) => {
@@ -277,16 +328,24 @@ router.delete('/fees/:id', async (req, res) => {
 
 /* ----------------------------- Trainers ----------------------------- */
 router.get('/trainers', async (req, res) => {
-  const { search = '' } = req.query;
-  const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { spec: new RegExp(search, 'i') }] } : {};
-  const trainers = await Trainer.find(filter).sort({ createdAt: -1 });
-  res.json(trainers);
+  try {
+    const { search = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { spec: new RegExp(search, 'i') }] } : {};
+    const total = await Trainer.countDocuments(filter);
+    const trainers = await Trainer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: trainers, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch trainers', error: err.message });
+  }
 });
 
 router.post('/trainers', async (req, res) => {
   try {
     if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can manage trainers' });
-    const trainer = await Trainer.create(req.body);
+    const { name, spec, clients, rating, sessions, img } = req.body;
+    if (!name) return res.status(400).json({ message: 'Trainer name is required' });
+    const trainer = await Trainer.create({ name, spec, clients, rating, sessions, img });
     res.status(201).json(trainer);
   } catch (error) {
     res.status(400).json({ message: 'Could not create trainer', error: error.message });
@@ -312,16 +371,24 @@ router.delete('/trainers/:id', async (req, res) => {
 
 /* --------------------------- Workout Programs --------------------------- */
 router.get('/workouts', async (req, res) => {
-  const { search = '' } = req.query;
-  const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { category: new RegExp(search, 'i') }] } : {};
-  const workouts = await WorkoutProgram.find(filter).sort({ createdAt: -1 });
-  res.json(workouts);
+  try {
+    const { search = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { category: new RegExp(search, 'i') }] } : {};
+    const total = await WorkoutProgram.countDocuments(filter);
+    const workouts = await WorkoutProgram.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: workouts, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch workouts', error: err.message });
+  }
 });
 
 router.post('/workouts', async (req, res) => {
   try {
     if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can manage workout programs' });
-    const workout = await WorkoutProgram.create(req.body);
+    const { name, category, duration, intensity, trainer, description } = req.body;
+    if (!name) return res.status(400).json({ message: 'Workout name is required' });
+    const workout = await WorkoutProgram.create({ name, category, duration, intensity, trainer, description });
     res.status(201).json(workout);
   } catch (error) {
     res.status(400).json({ message: 'Could not create workout program', error: error.message });
@@ -347,16 +414,24 @@ router.delete('/workouts/:id', async (req, res) => {
 
 /* --------------------------- Diet Plans --------------------------- */
 router.get('/diets', async (req, res) => {
-  const { search = '' } = req.query;
-  const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { goal: new RegExp(search, 'i') }] } : {};
-  const diets = await DietPlan.find(filter).sort({ createdAt: -1 });
-  res.json(diets);
+  try {
+    const { search = '' } = req.query;
+    const { page, limit, skip } = parsePagination(req);
+    const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { goal: new RegExp(search, 'i') }] } : {};
+    const total = await DietPlan.countDocuments(filter);
+    const diets = await DietPlan.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    res.json({ items: diets, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch diets', error: err.message });
+  }
 });
 
 router.post('/diets', async (req, res) => {
   try {
     if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can manage diet plans' });
-    const diet = await DietPlan.create(req.body);
+    const { name, goal, calories, meals, trainer } = req.body;
+    if (!name) return res.status(400).json({ message: 'Diet name is required' });
+    const diet = await DietPlan.create({ name, goal, calories, meals, trainer });
     res.status(201).json(diet);
   } catch (error) {
     res.status(400).json({ message: 'Could not create diet plan', error: error.message });
