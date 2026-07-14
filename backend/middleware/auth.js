@@ -12,6 +12,8 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, jwtSecret);
+    // normalize role to lowercase for consistent checks
+    if (decoded && decoded.role) decoded.role = String(decoded.role).toLowerCase();
     req.user = decoded; // { id, role, email, name }
     next();
   } catch (err) {
@@ -21,7 +23,9 @@ function verifyToken(req, res, next) {
 
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const role = (req.user && req.user.role) ? String(req.user.role).toLowerCase() : '';
+    const allowed = roles.map(r => String(r).toLowerCase());
+    if (!req.user || !allowed.includes(role)) {
       return res.status(403).json({ message: 'Forbidden: insufficient role' });
     }
     next();

@@ -13,8 +13,6 @@ const MembershipPlan = require('../models/MembershipPlan');
 const FeeRecord = require('../models/FeeRecord');
 const WorkoutProgram = require('../models/WorkoutProgram');
 const DietPlan = require('../models/DietPlan');
-const demoData = require('../demoData');
-
 const router = express.Router();
 
 // every route below requires a valid admin JWT
@@ -25,49 +23,10 @@ function canWrite(req) {
   return role === 'admin' || role === 'superadmin';
 }
 
-function buildDemoAttendance() {
-  return [
-    { _id: 'demo-att-1', memberName: 'Ishaan Verma', memberId: 'demo-member-1', date: '2026-07-14', status: 'Present', notes: 'Morning strength session', checkInTime: '06:30', checkOutTime: '08:10' },
-    { _id: 'demo-att-2', memberName: 'Maya Rao', memberId: 'demo-member-2', date: '2026-07-14', status: 'Late', notes: 'Arrived after warm-up', checkInTime: '07:15', checkOutTime: '09:00' },
-    { _id: 'demo-att-3', memberName: 'Rohan Shah', memberId: 'demo-member-3', date: '2026-07-13', status: 'Absent', notes: 'Sick leave', checkInTime: '', checkOutTime: '' },
-  ];
-}
 
-function buildDemoPlans() {
-  return [
-    { _id: 'demo-plan-1', name: 'Elite', durationMonths: 12, price: 12000, features: ['Unlimited classes', 'Recovery access', 'Personalized plan'], status: 'Active' },
-    { _id: 'demo-plan-2', name: 'Essential', durationMonths: 6, price: 8000, features: ['Standard access', '3 classes/week'], status: 'Active' },
-    { _id: 'demo-plan-3', name: 'Private', durationMonths: 3, price: 15000, features: ['1:1 coaching', 'Priority booking'], status: 'Popular' },
-  ];
-}
-
-function buildDemoFees() {
-  return [
-    { _id: 'demo-fee-1', memberName: 'Ishaan Verma', memberId: 'demo-member-1', plan: 'Elite', amount: 12000, status: 'Paid', dueDate: '2026-07-15', paidDate: '2026-07-14', method: 'Card' },
-    { _id: 'demo-fee-2', memberName: 'Maya Rao', memberId: 'demo-member-2', plan: 'Essential', amount: 8000, status: 'Pending', dueDate: '2026-07-20', paidDate: '', method: 'UPI' },
-    { _id: 'demo-fee-3', memberName: 'Rohan Shah', memberId: 'demo-member-3', plan: 'Private', amount: 15000, status: 'Overdue', dueDate: '2026-07-08', paidDate: '', method: 'Cash' },
-  ];
-}
-
-function buildDemoWorkouts() {
-  return [
-    { _id: 'demo-workout-1', name: 'Strength Sculpt', category: 'Strength', duration: '45 min', intensity: 'High', description: 'Compound lifts and core finisher', trainer: 'Marcus Lee' },
-    { _id: 'demo-workout-2', name: 'HIIT Flow', category: 'Cardio', duration: '30 min', intensity: 'Medium', description: 'Interval circuit with mobility', trainer: 'Elena Cruz' },
-  ];
-}
-
-function buildDemoDiets() {
-  return [
-    { _id: 'demo-diet-1', name: 'Performance Fuel', goal: 'Muscle gain', calories: 2600, meals: ['Protein oats', 'Chicken rice bowl', 'Greek yogurt'], trainer: 'Marcus Lee' },
-    { _id: 'demo-diet-2', name: 'Fat Loss Reset', goal: 'Weight loss', calories: 2000, meals: ['Egg scramble', 'Salad wrap', 'Salmon plate'], trainer: 'Elena Cruz' },
-  ];
-}
 
 /* ------------------------------ KPIs ------------------------------ */
 router.get('/kpis', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(demoData.state.kpis);
-  }
   const kpis = await Kpi.find().sort({ order: 1 });
   res.json(kpis);
 });
@@ -126,9 +85,6 @@ router.get('/dashboard-summary', async (req, res) => {
 
 /* ----------------------------- Members ----------------------------- */
 router.get('/members', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(demoData.getPublicMembers(demoData.state.members));
-  }
   const { search = '', plan = '', fee = '', trainer = '' } = req.query;
   const filter = {};
   if (plan) filter.plan = new RegExp(plan, 'i');
@@ -146,11 +102,6 @@ router.get('/members', async (req, res) => {
 });
 
 router.get('/members/:id', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    const member = demoData.getMemberById(req.params.id);
-    if (!member) return res.status(404).json({ message: 'Member not found' });
-    return res.json(demoData.getPublicMember(member));
-  }
   const member = await Member.findById(req.params.id).select('-passwordHash');
   if (!member) return res.status(404).json({ message: 'Member not found' });
   res.json(member);
@@ -202,9 +153,6 @@ router.delete('/members/:id', async (req, res) => {
 
 /* --------------------------- Attendance --------------------------- */
 router.get('/attendance', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(buildDemoAttendance());
-  }
   const { search = '', status = '' } = req.query;
   const filter = {};
   if (status) filter.status = status;
@@ -246,9 +194,6 @@ router.delete('/attendance/:id', async (req, res) => {
 
 /* --------------------------- Membership Plans --------------------------- */
 router.get('/plans', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(buildDemoPlans());
-  }
   const { search = '', status = '' } = req.query;
   const filter = {};
   if (status) filter.status = status;
@@ -288,9 +233,6 @@ router.delete('/plans/:id', async (req, res) => {
 
 /* --------------------------- Fee Management --------------------------- */
 router.get('/fees', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(buildDemoFees());
-  }
   const { search = '', status = '' } = req.query;
   const filter = {};
   if (status) filter.status = status;
@@ -302,9 +244,6 @@ router.get('/fees', async (req, res) => {
 });
 
 router.get('/pending-fees', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(buildDemoFees().filter((fee) => fee.status !== 'Paid'));
-  }
   const fees = await FeeRecord.find({ status: { $ne: 'Paid' } }).sort({ dueDate: 1, createdAt: -1 });
   res.json(fees);
 });
@@ -338,12 +277,6 @@ router.delete('/fees/:id', async (req, res) => {
 
 /* ----------------------------- Trainers ----------------------------- */
 router.get('/trainers', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json([
-      { _id: 'demo-trainer-1', name: 'Marcus Lee', spec: 'Strength & Conditioning', clients: 42, rating: 4.9, sessions: 12, img: 'trainer-1' },
-      { _id: 'demo-trainer-2', name: 'Elena Cruz', spec: 'HIIT & Mobility', clients: 34, rating: 4.8, sessions: 9, img: 'trainer-2' },
-    ]);
-  }
   const { search = '' } = req.query;
   const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { spec: new RegExp(search, 'i') }] } : {};
   const trainers = await Trainer.find(filter).sort({ createdAt: -1 });
@@ -379,9 +312,6 @@ router.delete('/trainers/:id', async (req, res) => {
 
 /* --------------------------- Workout Programs --------------------------- */
 router.get('/workouts', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(buildDemoWorkouts());
-  }
   const { search = '' } = req.query;
   const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { category: new RegExp(search, 'i') }] } : {};
   const workouts = await WorkoutProgram.find(filter).sort({ createdAt: -1 });
@@ -417,9 +347,6 @@ router.delete('/workouts/:id', async (req, res) => {
 
 /* --------------------------- Diet Plans --------------------------- */
 router.get('/diets', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(buildDemoDiets());
-  }
   const { search = '' } = req.query;
   const filter = search ? { $or: [{ name: new RegExp(search, 'i') }, { goal: new RegExp(search, 'i') }] } : {};
   const diets = await DietPlan.find(filter).sort({ createdAt: -1 });
@@ -455,30 +382,12 @@ router.delete('/diets/:id', async (req, res) => {
 
 /* --------------------------- Notifications --------------------------- */
 router.get('/notifications', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(demoData.state.notifications);
-  }
   const notifs = await Notification.find().sort({ createdAt: -1 }).limit(30);
   res.json(notifs);
 });
 
 /* ------------------------- Streaks (from Members) ------------------------- */
 router.get('/streaks', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    const streaks = demoData.state.members
-      .filter((m) => (m.streak?.current || 0) > 0)
-      .map((m) => ({
-        id: m.id,
-        name: m.name,
-        img: m.img,
-        current: m.streak?.current || 0,
-        longest: m.streak?.longest || 0,
-        last: m.streak?.last || '',
-        tier: m.streak?.tier || 'bronze',
-      }))
-      .sort((a, b) => b.current - a.current);
-    return res.json(streaks);
-  }
   const members = await Member.find({ 'streak.current': { $gt: 0 } })
     .select('name img streak')
     .sort({ 'streak.current': -1 });
@@ -496,19 +405,12 @@ router.get('/streaks', async (req, res) => {
 
 /* ------------------------------ Rewards ------------------------------ */
 router.get('/rewards', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(demoData.state.rewards);
-  }
   const rewards = await RewardHistory.find().sort({ createdAt: -1 }).limit(30);
   res.json(rewards);
 });
 
 router.post('/rewards', async (req, res) => {
   const { memberId, name, img, reward } = req.body;
-  if (demoData.isDemoMode()) {
-    const entry = demoData.addReward(memberId, { name, img, reward });
-    return res.status(201).json(entry);
-  }
   const entry = await RewardHistory.create({
     member: memberId,
     name,
@@ -526,9 +428,6 @@ router.post('/rewards', async (req, res) => {
 
 /* --------------------------- Contact messages --------------------------- */
 router.get('/contact-messages', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(demoData.state.contactMessages);
-  }
   const messages = await ContactMessage.find().sort({ createdAt: -1 });
   res.json(messages);
 });
