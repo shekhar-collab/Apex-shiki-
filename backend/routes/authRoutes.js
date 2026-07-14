@@ -14,11 +14,11 @@ function signToken(payload) {
 }
 
 async function findAdminByEmail(email) {
-  return Admin.findOne({ email: email.toLowerCase() });
+  return Admin.findOne({ where: { email: email.toLowerCase() } });
 }
 
 async function findMemberByEmail(email) {
-  return Member.findOne({ email: email.toLowerCase() });
+  return Member.findOne({ where: { email: email.toLowerCase() } });
 }
 
 router.post('/login', async (req, res) => {
@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
       const ok = await bcrypt.compare(password, admin.passwordHash);
       if (ok) {
         const token = signToken({
-          id: admin.id || admin._id,
+          id: admin.id,
           role: (admin.role || 'admin').toString().toLowerCase(),
           email: admin.email,
           name: admin.name,
@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
 
         return res.json({
           token,
-          user: { id: admin.id || admin._id, name: admin.name, email: admin.email, role: 'admin', img: admin.img },
+          user: { id: admin.id, name: admin.name, email: admin.email, role: 'admin', img: admin.img },
         });
       }
     }
@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
       const ok = await bcrypt.compare(password, member.passwordHash);
       if (ok) {
         const token = signToken({
-          id: member.id || member._id,
+          id: member.id,
           role: (member.role || 'member').toString().toLowerCase(),
           email: member.email,
           name: member.name,
@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
 
         return res.json({
           token,
-          user: { id: member.id || member._id, name: member.name, email: member.email, role: 'member', plan: member.plan, img: member.img },
+          user: { id: member.id, name: member.name, email: member.email, role: 'member', plan: member.plan, img: member.img },
         });
       }
     }
@@ -70,14 +70,13 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/* ------------------------- ADMIN AUTH ------------------------- */
-
 router.post('/admin/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
+
     const admin = await findAdminByEmail(email);
     if (!admin) return res.status(401).json({ message: 'Invalid credentials' });
 
@@ -85,7 +84,7 @@ router.post('/admin/login', async (req, res) => {
     if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = signToken({
-      id: admin.id || admin._id,
+      id: admin.id,
       role: (admin.role || 'admin').toString().toLowerCase(),
       email: admin.email,
       name: admin.name,
@@ -93,14 +92,12 @@ router.post('/admin/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: admin.id || admin._id, name: admin.name, email: admin.email, role: 'admin', img: admin.img },
+      user: { id: admin.id, name: admin.name, email: admin.email, role: 'admin', img: admin.img },
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-
-/* ------------------------- MEMBER AUTH ------------------------- */
 
 router.post('/member/login', async (req, res) => {
   try {
@@ -108,6 +105,7 @@ router.post('/member/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
+
     const member = await findMemberByEmail(email);
     if (!member) return res.status(401).json({ message: 'Invalid credentials' });
 
@@ -115,7 +113,7 @@ router.post('/member/login', async (req, res) => {
     if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = signToken({
-      id: member.id || member._id,
+      id: member.id,
       role: (member.role || 'member').toString().toLowerCase(),
       email: member.email,
       name: member.name,
@@ -123,7 +121,7 @@ router.post('/member/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: member.id || member._id, name: member.name, email: member.email, role: 'member', plan: member.plan, img: member.img },
+      user: { id: member.id, name: member.name, email: member.email, role: 'member', plan: member.plan, img: member.img },
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -149,10 +147,10 @@ router.post('/member/register', async (req, res) => {
       fee: 'gold',
     });
 
-    const token = signToken({ id: member.id || member._id, role: 'member', email: member.email, name: member.name });
+    const token = signToken({ id: member.id, role: 'member', email: member.email, name: member.name });
     res.status(201).json({
       token,
-      user: { id: member.id || member._id, name: member.name, email: member.email, role: 'member', plan: member.plan },
+      user: { id: member.id, name: member.name, email: member.email, role: 'member', plan: member.plan },
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

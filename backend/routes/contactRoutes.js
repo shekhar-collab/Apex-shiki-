@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
     const entry = await ContactMessage.create({ firstName, lastName, email, message });
-    res.status(201).json({ message: 'Thanks — we will get back to you soon.', id: entry._id });
+    res.status(201).json({ message: 'Thanks — we will get back to you soon.', id: entry.id });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
 
 // public — landing page also shows live trainer roster
 router.get('/trainers-public', async (req, res) => {
-  const trainers = await Trainer.find();
+  const trainers = await Trainer.findAll({ order: [['createdAt', 'DESC']] });
   res.json(trainers);
 });
 

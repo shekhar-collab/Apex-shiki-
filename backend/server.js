@@ -2,7 +2,8 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const sequelize = require('./config/database');
+const Admin = require('./models/Admin');
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -85,17 +86,13 @@ async function startServer() {
 
 async function bootstrap() {
   try {
-    // Ensure MONGO_URI exists before attempting connection
-    if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
-      console.error('[server] MONGO_URI is not set. Please set MONGO_URI in backend/.env to your MongoDB connection string.');
-      process.exit(1);
-    }
-    await connectDB();
+    await sequelize.authenticate();
+    await sequelize.sync();
+
     // ensure an admin user exists for first-time login
     try {
-      const Admin = require('./models/Admin');
       const bcrypt = require('bcryptjs');
-      const adminCount = await Admin.countDocuments();
+      const adminCount = await Admin.count();
       if (!adminCount) {
         const adminEmail = process.env.ADMIN_EMAIL || 'admin@apex.com';
         const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
@@ -108,9 +105,8 @@ async function bootstrap() {
     }
     await startServer();
   } catch (err) {
-    console.error('[server] Startup failed — could not connect to MongoDB at', process.env.MONGO_URI || process.env.MONGODB_URI);
+    console.error('[server] Startup failed — could not initialize SQLite database');
     console.error('[server] Error:', err.message);
-    console.error('[server] Suggestion: start MongoDB (e.g., `mongod`) or set `MONGO_URI` to a reachable MongoDB instance.');
     process.exit(1);
   }
 }

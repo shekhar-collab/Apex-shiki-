@@ -1,17 +1,19 @@
-const mongoose = require('mongoose');
+const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
 
-const FeeRecordSchema = new mongoose.Schema(
+const FeeRecord = sequelize.define(
+  'FeeRecord',
   {
-    memberName: { type: String, required: true },
-    memberId: { type: String, default: '' },
-    plan: { type: String, default: '' },
-    amount: { type: Number, default: 0 },
-    status: { type: String, default: 'Pending' },
-    dueDate: { type: String, default: '' },
-    paidDate: { type: String, default: '' },
-    method: { type: String, default: 'UPI' },
+    memberName: { type: DataTypes.STRING, allowNull: false },
+    memberId: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    plan: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    amount: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Pending' },
+    dueDate: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    paidDate: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    method: { type: DataTypes.STRING, allowNull: false, defaultValue: 'UPI' },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('FeeRecord', FeeRecordSchema);
+module.exports = FeeRecord;

@@ -1,14 +1,16 @@
-const mongoose = require('mongoose');
+const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
 
-const DietPlanSchema = new mongoose.Schema(
+const DietPlan = sequelize.define(
+  'DietPlan',
   {
-    name: { type: String, required: true },
-    goal: { type: String, default: '' },
-    calories: { type: Number, default: 0 },
-    meals: { type: [String], default: [] },
-    trainer: { type: String, default: '' },
+    name: { type: DataTypes.STRING, allowNull: false },
+    goal: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    calories: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    meals: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
+    trainer: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('DietPlan', DietPlanSchema);
+module.exports = DietPlan;

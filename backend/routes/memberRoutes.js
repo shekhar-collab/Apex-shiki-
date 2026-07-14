@@ -11,7 +11,7 @@ router.use(verifyToken, requireRole('member'));
 // dashboard script wrote into the DOM (macros, meals, exercises, week plan,
 // bookings, payments, rewards, achievements, notifications, weight history)
 router.get('/me', async (req, res) => {
-  const member = await Member.findById(req.user.id).select('-passwordHash');
+  const member = await Member.findByPk(req.user.id, { attributes: { exclude: ['passwordHash'] } });
   if (!member) return res.status(404).json({ message: 'Member not found' });
   res.json(member);
 });
@@ -20,22 +20,23 @@ router.patch('/me', async (req, res) => {
   const updates = { ...req.body };
   delete updates.passwordHash;
   delete updates.email;
-  const member = await Member.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-passwordHash');
+  await Member.update(updates, { where: { id: req.user.id } });
+  const member = await Member.findByPk(req.user.id, { attributes: { exclude: ['passwordHash'] } });
   res.json(member);
 });
 
 router.post('/me/bookings', async (req, res) => {
   const { d, m, name, time } = req.body;
-  const member = await Member.findByIdAndUpdate(
-    req.user.id,
-    { $push: { bookings: { d, m, name, time } } },
-    { new: true }
-  ).select('-passwordHash');
+  const member = await Member.findByPk(req.user.id);
+  if (!member) return res.status(404).json({ message: 'Member not found' });
+  const existing = Array.isArray(member.bookings) ? member.bookings : [];
+  member.bookings = [...existing, { d, m, name, time }];
+  await member.save();
   res.status(201).json(member.bookings);
 });
 
 router.delete('/me/bookings/:index', async (req, res) => {
-  const member = await Member.findById(req.user.id);
+  const member = await Member.findByPk(req.user.id);
   const idx = parseInt(req.params.index, 10);
   if (Number.isNaN(idx) || idx < 0 || idx >= member.bookings.length) {
     return res.status(400).json({ message: 'Invalid booking index' });
@@ -46,7 +47,7 @@ router.delete('/me/bookings/:index', async (req, res) => {
 });
 
 router.patch('/me/exercises/:index', async (req, res) => {
-  const member = await Member.findById(req.user.id);
+  const member = await Member.findByPk(req.user.id);
   const idx = parseInt(req.params.index, 10);
   if (Number.isNaN(idx) || idx < 0 || idx >= member.exercises.length) {
     return res.status(400).json({ message: 'Invalid exercise index' });

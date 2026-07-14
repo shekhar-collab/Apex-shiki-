@@ -1,14 +1,16 @@
-const mongoose = require('mongoose');
+const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
 
-const NotificationSchema = new mongoose.Schema(
+const Notification = sequelize.define(
+  'Notification',
   {
-    icon: { type: String, default: 'admission' },
-    color: { type: String, default: 'gold' },
-    title: { type: String, required: true },
-    desc: { type: String, default: '' },
-    time: { type: String, default: 'Just now' },
+    icon: { type: DataTypes.STRING, allowNull: false, defaultValue: 'admission' },
+    color: { type: DataTypes.STRING, allowNull: false, defaultValue: 'gold' },
+    title: { type: DataTypes.STRING, allowNull: false },
+    desc: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    time: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Just now' },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Notification', NotificationSchema);
+module.exports = Notification;
