@@ -3,8 +3,10 @@
 // Node/Express + MongoDB backend. Every rendering function below is
 // otherwise byte-for-byte identical to the original static dashboard.
 export async function initAdminDashboard(token, apiBase) {
-  const api = (path, options = {}) =>
-    fetch(apiBase + path, {
+  const base = apiBase.replace(/\/$/, '');
+  const api = (path, options = {}) => {
+    const normalizedPath = path.replace(/^\/api/i, '');
+    return fetch(`${base}/api${normalizedPath}`, {
       headers: { Authorization: 'Bearer ' + token, ...(options.body ? { 'Content-Type': 'application/json' } : {}) },
       ...options,
     }).then(async (r) => {
@@ -13,6 +15,7 @@ export async function initAdminDashboard(token, apiBase) {
       if (!r.ok) throw new Error(data?.message || 'API error ' + r.status + ' on ' + path);
       return data;
     });
+  };
 
   function normalizeList(payload) {
     if (Array.isArray(payload)) return payload;
@@ -40,9 +43,8 @@ function sendReward(){
   REWARD_HISTORY.unshift(item);
   renderRewardHistory();
   const memberId = (STREAKS.find(s=>s.name===name)||{}).id;
-  fetch(apiBase + '/api/admin/rewards', {
+  api('/admin/rewards', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
     body: JSON.stringify({ memberId, name, img: item.img, reward: rewardType }),
   }).catch(()=>{});
   closeRewardModal();
