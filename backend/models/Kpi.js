@@ -1,16 +1,18 @@
-const mongoose = require('mongoose');
+const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
 
-const KpiSchema = new mongoose.Schema(
+const Kpi = sequelize.define(
+  'Kpi',
   {
-    icon: { type: String, default: 'members' },
-    label: { type: String, required: true },
-    val: { type: String, required: true },
-    growth: { type: String, default: '+0%' },
-    up: { type: Boolean, default: true },
-    data: { type: [Number], default: [] },
-    order: { type: Number, default: 0 },
+    icon: { type: DataTypes.STRING, allowNull: false, defaultValue: 'members' },
+    label: { type: DataTypes.STRING, allowNull: false },
+    val: { type: DataTypes.STRING, allowNull: false },
+    growth: { type: DataTypes.STRING, allowNull: false, defaultValue: '+0%' },
+    up: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    data: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
+    order: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Kpi', KpiSchema);
+module.exports = Kpi;

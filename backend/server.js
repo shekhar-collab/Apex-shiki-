@@ -1,11 +1,9 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
-const net = require('net');
-const fs = require('fs');
-const path = require('path');
-const connectDB = require('./config/db');
-const demoData = require('./demoData');
+const sequelize = require('./config/database');
+const Admin = require('./models/Admin');
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -68,31 +66,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Unexpected server error' });
 });
 
-function findAvailablePort(startPort) {
-  return new Promise((resolve, reject) => {
-    const tester = net.createServer();
-
-    tester.once('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(findAvailablePort(startPort + 1));
-      } else {
-        reject(err);
-      }
-    });
-
-    tester.once('listening', () => {
-      const address = tester.address();
-      tester.close(() => resolve(address.port));
-    });
-
-    tester.listen(startPort, HOST);
-  });
-}
-
 async function startServer() {
-  const port = await findAvailablePort(DEFAULT_PORT);
-  const runtimePortFile = path.join(__dirname, '.runtime-port');
-  fs.writeFileSync(runtimePortFile, String(port), 'utf8');
+  const port = DEFAULT_PORT;
 
   const server = app.listen(port, HOST, () => {
     console.log(`[server] ✔ Backend Started`);
@@ -109,9 +84,31 @@ async function startServer() {
   });
 }
 
-connectDB()
-  .then(() => startServer())
-  .catch((err) => {
-    console.error('[server] Startup failed', err);
+async function bootstrap() {
+  try {
+    await sequelize.authenticate();
+    await sequelize.sync();
+
+    // ensure an admin user exists for first-time login
+    try {
+      const bcrypt = require('bcryptjs');
+      const adminCount = await Admin.count();
+      if (!adminCount) {
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@apex.com';
+        const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+        const hash = await bcrypt.hash(adminPassword, 10);
+        await Admin.create({ name: 'Apex Admin', email: adminEmail.toLowerCase(), passwordHash: hash, role: 'superadmin' });
+        console.log('[server] Initial admin user created:', adminEmail);
+      }
+    } catch (err) {
+      console.warn('[server] Could not ensure admin user exists:', err.message);
+    }
+    await startServer();
+  } catch (err) {
+    console.error('[server] Startup failed — could not initialize SQLite database');
+    console.error('[server] Error:', err.message);
     process.exit(1);
-  });
+  }
+}
+
+bootstrap();

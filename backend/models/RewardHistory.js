@@ -1,14 +1,16 @@
-const mongoose = require('mongoose');
+const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
 
-const RewardHistorySchema = new mongoose.Schema(
+const RewardHistory = sequelize.define(
+  'RewardHistory',
   {
-    name: { type: String, required: true },
-    img: { type: String, default: '' },
-    reward: { type: String, required: true },
-    time: { type: String, default: 'Just now' },
-    member: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
+    name: { type: DataTypes.STRING, allowNull: false },
+    img: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    reward: { type: DataTypes.STRING, allowNull: false },
+    time: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Just now' },
+    memberId: { type: DataTypes.STRING, allowNull: true },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('RewardHistory', RewardHistorySchema);
+module.exports = RewardHistory;

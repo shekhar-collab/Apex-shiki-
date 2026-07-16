@@ -1,15 +1,17 @@
-const mongoose = require('mongoose');
+const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
 
-const TrainerSchema = new mongoose.Schema(
+const Trainer = sequelize.define(
+  'Trainer',
   {
-    name: { type: String, required: true },
-    spec: { type: String, default: '' },
-    img: { type: String, default: '' },
-    clients: { type: Number, default: 0 },
-    rating: { type: Number, default: 0 },
-    sessions: { type: Number, default: 0 },
+    name: { type: DataTypes.STRING, allowNull: false },
+    spec: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    img: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    clients: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    rating: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    sessions: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Trainer', TrainerSchema);
+module.exports = Trainer;

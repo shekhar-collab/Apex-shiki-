@@ -1,6 +1,6 @@
 const express = require('express');
 const ContactMessage = require('../models/ContactMessage');
-const demoData = require('../demoData');
+const Trainer = require('../models/Trainer');
 
 const router = express.Router();
 
@@ -10,12 +10,8 @@ router.post('/', async (req, res) => {
     if (!firstName || !lastName || !email || !message) {
       return res.status(400).json({ message: 'All fields are required' });
     }
-    if (demoData.isDemoMode()) {
-      const entry = demoData.addContactMessage({ firstName, lastName, email, message });
-      return res.status(201).json({ message: 'Thanks — we will get back to you soon.', id: entry.id });
-    }
     const entry = await ContactMessage.create({ firstName, lastName, email, message });
-    res.status(201).json({ message: 'Thanks — we will get back to you soon.', id: entry._id });
+    res.status(201).json({ message: 'Thanks — we will get back to you soon.', id: entry.id });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -23,11 +19,7 @@ router.post('/', async (req, res) => {
 
 // public — landing page also shows live trainer roster
 router.get('/trainers-public', async (req, res) => {
-  if (demoData.isDemoMode()) {
-    return res.json(demoData.state.trainers);
-  }
-  const Trainer = require('../models/Trainer');
-  const trainers = await Trainer.find();
+  const trainers = await Trainer.findAll({ order: [['createdAt', 'DESC']] });
   res.json(trainers);
 });
 

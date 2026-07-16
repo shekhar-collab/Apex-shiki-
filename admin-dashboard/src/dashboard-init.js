@@ -3,12 +3,25 @@
 // Node/Express + MongoDB backend. Every rendering function below is
 // otherwise byte-for-byte identical to the original static dashboard.
 export async function initAdminDashboard(token, apiBase) {
-  const api = (path) =>
-    fetch(apiBase + path, { headers: { Authorization: 'Bearer ' + token } }).then((r) => {
-      if (!r.ok) throw new Error('API error ' + r.status + ' on ' + path);
-      return r.json();
+  const base = apiBase.replace(/\/$/, '');
+  const api = (path, options = {}) => {
+    const normalizedPath = path.replace(/^\/api/i, '');
+    return fetch(`${base}/api${normalizedPath}`, {
+      headers: { Authorization: 'Bearer ' + token, ...(options.body ? { 'Content-Type': 'application/json' } : {}) },
+      ...options,
+    }).then(async (r) => {
+      const text = await r.text();
+      const data = text ? JSON.parse(text) : null;
+      if (!r.ok) throw new Error(data?.message || 'API error ' + r.status + ' on ' + path);
+      return data;
     });
+  };
 
+  function normalizeList(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (payload && Array.isArray(payload.items)) return payload.items;
+    return [];
+  }
 
 window.__prefillMember = null;
 document.getElementById('rewardOptions').addEventListener('click', e=>{
@@ -30,9 +43,8 @@ function sendReward(){
   REWARD_HISTORY.unshift(item);
   renderRewardHistory();
   const memberId = (STREAKS.find(s=>s.name===name)||{}).id;
-  fetch(apiBase + '/api/admin/rewards', {
+  api('/admin/rewards', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
     body: JSON.stringify({ memberId, name, img: item.img, reward: rewardType }),
   }).catch(()=>{});
   closeRewardModal();
@@ -124,7 +136,7 @@ const NAV = [
     {id:'settings', label:'Settings', icon:'settings'},
   ]},
 ];
-const FULL_PAGES = ['dashboard','members','attendance','fees','trainers','analytics','notifications','settings','streaks'];
+const FULL_PAGES = ['dashboard','members','admission','attendance','plans','fees','pendingfees','trainers','workouts','diet','analytics','notifications','settings','streaks'];
 
 const navContainer = document.getElementById('navContainer');
 NAV.forEach(group=>{
@@ -166,8 +178,10 @@ function tick(){
 }
 tick(); setInterval(tick, 30000);
 
-/* ============ KPI DATA ============ */
-const KPIS = await api('/api/admin/kpis');
+/* ============ DASHBOARD DATA ============ */
+const dashboardSummary = await api('/api/admin/dashboard-summary').catch(() => ({}));
+const KPIS = dashboardSummary.kpis || [];
+const dashboardCharts = dashboardSummary.charts || {};
 function sparkPath(data,w,h){
   const max=Math.max(...data), min=Math.min(...data);
   const step=w/(data.length-1);
@@ -224,14 +238,12 @@ function lineChart(svgId, seriesArr, colors, w, h){
     pts.forEach(p=>{svg.innerHTML += `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${colors[si]}"/>`;});
   });
 }
-lineChart('revenueChart', [
+lineChart('revenueChart', dashboardCharts.revenueSeries || [
   [4.2,4.8,5.1,5.6,6.0,6.4,7.1,7.6,8.0,8.5,9.2,9.8],
   [1.1,1.3,1.2,1.6,1.8,1.7,2.0,2.2,2.4,2.3,2.6,2.9]
 ], ['#e8cd90','#7aa6d6'], 720, 220);
 
-lineChart('growthChart', [
-  [80,95,110,102,130,148,160,175,168,190,205,220]
-], ['#e8cd90'], 720, 200);
+lineChart('growthChart', [dashboardCharts.growthSeries || [80,95,110,102,130,148,160,175,168,190,205,220]], ['#e8cd90'], 720, 200);
 
 /* ============ DONUT CHARTS ============ */
 function donut(svgId, segments, colors){
@@ -251,11 +263,11 @@ function donut(svgId, segments, colors){
   });
   svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${r2-2}" fill="#18181b"/>`;
 }
-donut('donutChart',[46,34,20],['#e8cd90','#7aa6d6','#6fcf97']);
-donut('paymentDonut',[48,28,16,8],['#e8cd90','#7aa6d6','#6fcf97','#e2725b']);
-donut('workoutDonut',[38,27,20,15],['#e8cd90','#7aa6d6','#6fcf97','#e2725b']);
-donut('attendanceDonut',[94,6],['#e8cd90','#2a2a2e']);
-donut('feeDonut',[88,12],['#7aa6d6','#2a2a2e']);
+donut('donutChart', dashboardCharts.membershipDistribution || [46,34,20], ['#e8cd90','#7aa6d6','#6fcf97']);
+donut('paymentDonut', dashboardCharts.paymentBreakdown || [48,28,16,8], ['#e8cd90','#7aa6d6','#6fcf97','#e2725b']);
+donut('workoutDonut', dashboardCharts.workoutMix || [38,27,20,15], ['#e8cd90','#7aa6d6','#6fcf97','#e2725b']);
+donut('attendanceDonut', dashboardCharts.attendanceBreakdown || [94,6], ['#e8cd90','#2a2a2e']);
+donut('feeDonut', dashboardCharts.feeCollectionBreakdown || [88,12], ['#7aa6d6','#2a2a2e']);
 
 /* ============ BAR CHARTS ============ */
 function barChart(svgId, data, labels, color, w, h){
@@ -272,8 +284,8 @@ function barChart(svgId, data, labels, color, w, h){
     svg.innerHTML += `<text x="${x+bw/2}" y="${h-4}" font-size="10" fill="#8f8d87" text-anchor="middle" font-family="Manrope">${labels[i]}</text>`;
   });
 }
-barChart('attendanceBar',[72,78,81,86,90,94],['Feb','Mar','Apr','May','Jun','Jul'],'#e8cd90',400,220);
-barChart('trainerBarChart',[92,88,95,84,90,97],['Marcus','Elena','Jordan','Sofia','Kabir','Riya'],'#7aa6d6',400,200);
+barChart('attendanceBar', dashboardCharts.attendanceTrend || [72,78,81,86,90,94], ['Feb','Mar','Apr','May','Jun','Jul'], '#e8cd90', 400, 220);
+barChart('trainerBarChart', dashboardCharts.trainerPerformance || [92,88,95,84,90,97], ['Marcus','Elena','Jordan','Sofia','Kabir','Riya'], '#7aa6d6', 400, 200);
 
 /* ============ HEATMAP ============ */
 const heat = document.getElementById('heatmapGrid');
@@ -283,9 +295,11 @@ for(let i=0;i<42;i++){
 }
 
 /* ============ RECENT MEMBERS + MEMBERS TABLE ============ */
-const MEMBERS = await api('/api/admin/members');
+const membersPayload = await api('/api/admin/members').catch(() => []);
+const MEMBERS = (dashboardSummary.recentMembers || []).concat(normalizeList(membersPayload));
+const allMembers = normalizeList(membersPayload);
 function feeLabel(f){return f==='green'?'Paid':f==='red'?'Overdue':'Partial';}
-document.getElementById('recentMembersBody').innerHTML = MEMBERS.slice(0,5).map(m=>`
+document.getElementById('recentMembersBody').innerHTML = (dashboardSummary.recentMembers || []).slice(0,5).map(m=>`
   <tr>
     <td><div class="member-cell"><img src="https://images.unsplash.com/photo-${m.img}?q=80&w=100&auto=format&fit=crop"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
     <td><span class="badge gold">${m.plan}</span></td>
@@ -293,52 +307,58 @@ document.getElementById('recentMembersBody').innerHTML = MEMBERS.slice(0,5).map(
     <td><span class="badge ${m.fee}">${feeLabel(m.fee)}</span></td>
   </tr>`).join('');
 
-document.getElementById('membersBody').innerHTML = MEMBERS.map(m=>`
-  <tr>
-    <td><div class="member-cell"><img src="https://images.unsplash.com/photo-${m.img}?q=80&w=100&auto=format&fit=crop"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
-    <td><span class="badge gold">${m.plan}</span></td>
-    <td>${m.trainer}</td>
-    <td>${m.join}</td>
-    <td>${m.expiry}</td>
-    <td><div class="progress-mini"><i style="width:${m.att}%"></i></div></td>
-    <td>${m.bmi}</td>
-    <td><span class="badge ${m.fee}">${feeLabel(m.fee)}</span></td>
-    <td><div class="row-actions"><span>✎</span><span>⋯</span></div></td>
-  </tr>`).join('');
+function renderMembers(list = allMembers) {
+  document.getElementById('membersBody').innerHTML = list.map(m=>`
+    <tr>
+      <td><div class="member-cell"><img src="https://images.unsplash.com/photo-${m.img}?q=80&w=100&auto=format&fit=crop"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
+      <td><span class="badge gold">${m.plan}</span></td>
+      <td>${m.trainer || 'Unassigned'}</td>
+      <td>${m.join || '—'}</td>
+      <td>${m.expiry || '—'}</td>
+      <td><div class="progress-mini"><i style="width:${m.att || 0}%"></i></div></td>
+      <td>${m.bmi || 0}</td>
+      <td><span class="badge ${m.fee || 'green'}">${feeLabel(m.fee || 'green')}</span></td>
+      <td><div class="row-actions"><span onclick="window.editMember('${m._id || m.id}')">✎</span><span onclick="window.deleteMember('${m._id || m.id}')">⋯</span></div></td>
+    </tr>`).join('');
+}
+renderMembers(allMembers);
 
 /* ============ TRANSACTIONS ============ */
-const TXNS = await api('/api/admin/transactions');
+const TXNS = dashboardSummary.transactions || [];
 document.getElementById('txnBody').innerHTML = TXNS.map(t=>`
-  <tr><td>${t.name}</td><td>${t.amt}</td><td>${t.method}</td><td><span class="badge ${t.status}">${t.status==='green'?'Paid':t.status==='red'?'Overdue':'Partial'}</span></td></tr>`).join('');
+  <tr><td>${t.memberName || t.name}</td><td>${t.amount || t.amt}</td><td>${t.method}</td><td><span class="badge ${t.status}">${t.status==='green'?'Paid':t.status==='red'?'Overdue':'Partial'}</span></td></tr>`).join('');
 
 /* ============ TRAINERS GRID ============ */
-const TRAINERS = await api('/api/admin/trainers');
-document.getElementById('trainerGrid').innerHTML = TRAINERS.map(t=>`
-  <div class="card trainer-card">
-    <img src="https://images.unsplash.com/photo-${t.img}?q=80&w=200&auto=format&fit=crop">
-    <h4>${t.name}</h4>
-    <div class="spec">${t.spec}</div>
-    <div class="trainer-stats">
-      <div><div class="v">${t.clients}</div><div class="l">Clients</div></div>
-      <div><div class="v">${t.rating}★</div><div class="l">Rating</div></div>
-      <div><div class="v">${t.sessions}</div><div class="l">Today</div></div>
-    </div>
-  </div>`).join('');
+let TRAINERS = dashboardSummary.trainers || [];
+function renderTrainers(list = TRAINERS) {
+  document.getElementById('trainerGrid').innerHTML = list.map(t=>`
+    <div class="card trainer-card">
+      <img src="https://images.unsplash.com/photo-${t.img || '1519085360753-af0119f7cbe7'}?q=80&w=200&auto=format&fit=crop">
+      <h4>${t.name}</h4>
+      <div class="spec">${t.spec}</div>
+      <div class="trainer-stats">
+        <div><div class="v">${t.clients}</div><div class="l">Clients</div></div>
+        <div><div class="v">${t.rating}★</div><div class="l">Rating</div></div>
+        <div><div class="v">${t.sessions}</div><div class="l">Today</div></div>
+      </div>
+    </div>`).join('');
+}
+renderTrainers(TRAINERS);
 
 /* ============ NOTIFICATIONS ============ */
-const NOTIFS = await api('/api/admin/notifications');
+const NOTIFS = dashboardSummary.notifications || [];
 function notifHTML(n){
   return `<div class="notif-item">
-    <div class="notif-ico" style="background:rgba(198,161,91,0.14);color:var(--gold-bright);">${svgIcon(n.icon)}</div>
-    <div class="notif-body"><h5>${n.title}</h5><p>${n.desc}</p></div>
-    <div class="notif-time">${n.time}</div>
+    <div class="notif-ico" style="background:rgba(198,161,91,0.14);color:var(--gold-bright);">${svgIcon(n.icon || 'notifications')}</div>
+    <div class="notif-body"><h5>${n.title || n.name}</h5><p>${n.desc || n.message || 'No details provided'}</p></div>
+    <div class="notif-time">${n.time || 'Just now'}</div>
   </div>`;
 }
 document.getElementById('dashNotifList').innerHTML = NOTIFS.slice(0,4).map(notifHTML).join('');
 document.getElementById('fullNotifList').innerHTML = NOTIFS.map(notifHTML).join('');
 
 /* ============ STREAK TRACKER ============ */
-const STREAKS = await api('/api/admin/streaks');
+const STREAKS = normalizeList(await api('/api/admin/streaks'));
 const TIER_META = {
   bronze:{label:'Bronze · 3+ days', color:'tier-bronze', dotBg:'rgba(180,120,70,0.16)', emoji:'🔥'},
   silver:{label:'Silver · 10+ days', color:'tier-silver', dotBg:'rgba(190,190,200,0.16)', emoji:'⚡'},
@@ -379,7 +399,7 @@ function renderTiers(){
     </div>`;
   }).join('');
 }
-const REWARD_HISTORY = await api('/api/admin/rewards');
+const REWARD_HISTORY = normalizeList(await api('/api/admin/rewards'));
 function renderRewardHistory(){
   document.getElementById('rewardHistory').innerHTML = REWARD_HISTORY.map(r=>`
     <div class="reward-hist-item">
@@ -397,5 +417,348 @@ window.switchPage = switchPage;
 window.openRewardModal = openRewardModal;
 window.closeRewardModal = closeRewardModal;
 window.sendReward = sendReward;
+
+async function refreshData() {
+  const [members, trainers, attendance, fees, plans, workouts, diets] = await Promise.all([
+    api('/api/admin/members').catch(() => []).then(normalizeList),
+    api('/api/admin/trainers').catch(() => []).then(normalizeList),
+    api('/api/admin/attendance').catch(() => []).then(normalizeList),
+    api('/api/admin/fees').catch(() => []).then(normalizeList),
+    api('/api/admin/plans').catch(() => []).then(normalizeList),
+    api('/api/admin/workouts').catch(() => []).then(normalizeList),
+    api('/api/admin/diets').catch(() => []).then(normalizeList),
+  ]);
+  renderMembers(members);
+  TRAINERS = trainers;
+  renderTrainers(trainers);
+  renderAttendance(attendance);
+  renderFees(fees);
+  renderPendingFees(fees.filter((fee) => fee.status !== 'Paid'));
+  renderPlans(plans);
+  renderWorkouts(workouts);
+  renderDiets(diets);
+}
+
+function normalizeForm(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (data.features) data.features = data.features.split(',').map((item) => item.trim()).filter(Boolean);
+  if (data.durationMonths) data.durationMonths = Number(data.durationMonths);
+  if (data.price) data.price = Number(data.price);
+  if (data.amount) data.amount = Number(data.amount);
+  if (data.clients) data.clients = Number(data.clients);
+  if (data.rating) data.rating = Number(data.rating);
+  if (data.sessions) data.sessions = Number(data.sessions);
+  if (data.calories) data.calories = Number(data.calories);
+  if (data.att) data.att = Number(data.att);
+  if (data.bmi) data.bmi = Number(data.bmi);
+  if (data.id === '') delete data.id;
+  return data;
+}
+
+async function submitForm(url, payload, method = 'POST') {
+  await api(url, { method, body: JSON.stringify(payload) });
+  await refreshData();
+}
+
+function setupForm(formId, handler) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = normalizeForm(form);
+    await handler(payload);
+    form.reset();
+  });
+}
+
+setupForm('admissionForm', async (payload) => {
+  await submitForm('/api/admin/members', payload);
+});
+
+setupForm('planForm', async (payload) => {
+  if (payload.id) {
+    await submitForm(`/api/admin/plans/${payload.id}`, payload, 'PATCH');
+  } else {
+    await submitForm('/api/admin/plans', payload, 'POST');
+  }
+});
+
+setupForm('attendanceForm', async (payload) => {
+  if (payload.id) {
+    await submitForm(`/api/admin/attendance/${payload.id}`, payload, 'PATCH');
+  } else {
+    await submitForm('/api/admin/attendance', payload, 'POST');
+  }
+});
+
+setupForm('feeForm', async (payload) => {
+  if (payload.id) {
+    await submitForm(`/api/admin/fees/${payload.id}`, payload, 'PATCH');
+  } else {
+    await submitForm('/api/admin/fees', payload, 'POST');
+  }
+});
+
+setupForm('trainerForm', async (payload) => {
+  if (payload.id) {
+    await submitForm(`/api/admin/trainers/${payload.id}`, payload, 'PATCH');
+  } else {
+    await submitForm('/api/admin/trainers', payload, 'POST');
+  }
+});
+
+setupForm('workoutForm', async (payload) => {
+  if (payload.id) {
+    await submitForm(`/api/admin/workouts/${payload.id}`, payload, 'PATCH');
+  } else {
+    await submitForm('/api/admin/workouts', payload, 'POST');
+  }
+});
+
+setupForm('dietForm', async (payload) => {
+  if (payload.id) {
+    await submitForm(`/api/admin/diets/${payload.id}`, payload, 'PATCH');
+  } else {
+    await submitForm('/api/admin/diets', payload, 'POST');
+  }
+});
+
+function renderAttendance(list) {
+  const body = document.getElementById('attendanceBody');
+  if (!body) return;
+  const filtered = list.filter((item) => {
+    const search = (document.getElementById('attendanceSearchInput')?.value || '').toLowerCase();
+    const status = document.getElementById('attendanceStatusFilter')?.value || '';
+    const matchSearch = !search || [item.memberName, item.status, item.notes].join(' ').toLowerCase().includes(search);
+    const matchStatus = !status || item.status === status;
+    return matchSearch && matchStatus;
+  });
+  body.innerHTML = filtered.map((item) => `
+    <tr>
+      <td>${item.memberName}</td>
+      <td>${item.date}</td>
+      <td><span class="badge ${item.status === 'Absent' ? 'red' : item.status === 'Late' ? 'gold' : 'green'}">${item.status}</span></td>
+      <td>${item.checkInTime || '—'}</td>
+      <td>${item.checkOutTime || '—'}</td>
+      <td>${item.notes || '—'}</td>
+      <td><div class="row-actions"><span onclick="window.editAttendance('${item._id}')">✎</span><span onclick="window.deleteAttendance('${item._id}')">⋯</span></div></td>
+    </tr>`).join('');
+}
+
+function renderFees(list) {
+  const body = document.getElementById('feesBody');
+  if (!body) return;
+  body.innerHTML = list.map((item) => `
+    <tr>
+      <td>${item.memberName}</td>
+      <td>${item.plan}</td>
+      <td>${item.amount}</td>
+      <td><span class="badge ${item.status === 'Paid' ? 'green' : item.status === 'Overdue' ? 'red' : 'gold'}">${item.status}</span></td>
+      <td>${item.dueDate || '—'}</td>
+      <td>${item.paidDate || '—'}</td>
+      <td>${item.method || 'UPI'}</td>
+      <td><div class="row-actions"><span onclick="window.editFee('${item._id}')">✎</span><span onclick="window.deleteFee('${item._id}')">⋯</span></div></td>
+    </tr>`).join('');
+}
+
+function renderPendingFees(list) {
+  const body = document.getElementById('pendingFeesBody');
+  if (!body) return;
+  body.innerHTML = list.map((item) => `
+    <tr>
+      <td>${item.memberName}</td>
+      <td>${item.plan}</td>
+      <td>${item.amount}</td>
+      <td>${item.dueDate || '—'}</td>
+      <td><span class="badge ${item.status === 'Overdue' ? 'red' : 'gold'}">${item.status}</span></td>
+      <td><div class="row-actions"><span onclick="window.editFee('${item._id}')">✎</span></div></td>
+    </tr>`).join('');
+}
+
+function renderPlans(list) {
+  const body = document.getElementById('plansBody');
+  if (!body) return;
+  body.innerHTML = list.map((item) => `
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.durationMonths || 0} mo</td>
+      <td>₹${item.price}</td>
+      <td>${item.status}</td>
+      <td>${(item.features || []).join(', ')}</td>
+      <td><div class="row-actions"><span onclick="window.editPlan('${item._id}')">✎</span><span onclick="window.deletePlan('${item._id}')">⋯</span></div></td>
+    </tr>`).join('');
+}
+
+function renderWorkouts(list) {
+  const body = document.getElementById('workoutsBody');
+  if (!body) return;
+  body.innerHTML = list.map((item) => `
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.category}</td>
+      <td>${item.duration}</td>
+      <td>${item.intensity}</td>
+      <td>${item.trainer}</td>
+      <td><div class="row-actions"><span onclick="window.editWorkout('${item._id}')">✎</span><span onclick="window.deleteWorkout('${item._id}')">⋯</span></div></td>
+    </tr>`).join('');
+}
+
+function renderDiets(list) {
+  const body = document.getElementById('dietsBody');
+  if (!body) return;
+  body.innerHTML = list.map((item) => `
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.goal}</td>
+      <td>${item.calories}</td>
+      <td>${item.trainer}</td>
+      <td>${(item.meals || []).join(', ')}</td>
+      <td><div class="row-actions"><span onclick="window.editDiet('${item._id}')">✎</span><span onclick="window.deleteDiet('${item._id}')">⋯</span></div></td>
+    </tr>`).join('');
+}
+
+window.refreshDashboard = refreshData;
+window.openAttendanceForm = () => { document.getElementById('attendanceForm').reset(); };
+window.openFeeForm = () => { document.getElementById('feeForm').reset(); };
+window.openPlanForm = () => { document.getElementById('planForm').reset(); };
+window.openTrainerForm = () => { document.getElementById('trainerForm').reset(); };
+window.openWorkoutForm = () => { document.getElementById('workoutForm').reset(); };
+window.openDietForm = () => { document.getElementById('dietForm').reset(); };
+
+window.editMember = async (id) => {
+  const member = await api(`/api/admin/members/${id}`);
+  const form = document.getElementById('admissionForm');
+  if (!form) return;
+  form.querySelector('[name="id"]').value = member._id || member.id;
+  form.querySelector('[name="name"]').value = member.name || '';
+  form.querySelector('[name="email"]').value = member.email || '';
+  form.querySelector('[name="plan"]').value = member.plan || 'Essential';
+  form.querySelector('[name="trainer"]').value = member.trainer || '';
+  form.querySelector('[name="fee"]').value = member.fee || 'green';
+  form.querySelector('[name="att"]').value = member.att || 0;
+  form.querySelector('[name="bmi"]').value = member.bmi || 0;
+  switchPage('admission', 'New Admission', 'admission');
+};
+
+window.deleteMember = async (id) => {
+  if (!confirm('Delete this member?')) return;
+  await api(`/api/admin/members/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+window.editAttendance = async (id) => {
+  const item = await api(`/api/admin/attendance/${id}`);
+  const form = document.getElementById('attendanceForm');
+  form.querySelector('[name="id"]').value = item._id;
+  form.querySelector('[name="memberName"]').value = item.memberName || '';
+  form.querySelector('[name="date"]').value = item.date || '';
+  form.querySelector('[name="status"]').value = item.status || 'Present';
+  form.querySelector('[name="checkInTime"]').value = item.checkInTime || '';
+  form.querySelector('[name="checkOutTime"]').value = item.checkOutTime || '';
+  form.querySelector('[name="notes"]').value = item.notes || '';
+  switchPage('attendance', 'Attendance', 'attendance');
+};
+
+window.deleteAttendance = async (id) => {
+  if (!confirm('Delete this attendance record?')) return;
+  await api(`/api/admin/attendance/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+window.editFee = async (id) => {
+  const item = await api(`/api/admin/fees/${id}`);
+  const form = document.getElementById('feeForm');
+  form.querySelector('[name="id"]').value = item._id;
+  form.querySelector('[name="memberName"]').value = item.memberName || '';
+  form.querySelector('[name="plan"]').value = item.plan || '';
+  form.querySelector('[name="amount"]').value = item.amount || 0;
+  form.querySelector('[name="status"]').value = item.status || 'Pending';
+  form.querySelector('[name="dueDate"]').value = item.dueDate || '';
+  form.querySelector('[name="paidDate"]').value = item.paidDate || '';
+  form.querySelector('[name="method"]').value = item.method || 'UPI';
+  switchPage('fees', 'Fee Management', 'fees');
+};
+
+window.deleteFee = async (id) => {
+  if (!confirm('Delete this fee record?')) return;
+  await api(`/api/admin/fees/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+window.editPlan = async (id) => {
+  const item = await api(`/api/admin/plans/${id}`);
+  const form = document.getElementById('planForm');
+  form.querySelector('[name="id"]').value = item._id;
+  form.querySelector('[name="name"]').value = item.name || '';
+  form.querySelector('[name="durationMonths"]').value = item.durationMonths || '';
+  form.querySelector('[name="price"]').value = item.price || '';
+  form.querySelector('[name="status"]').value = item.status || 'Active';
+  form.querySelector('[name="features"]').value = (item.features || []).join(', ');
+  switchPage('plans', 'Membership Plans', 'plans');
+};
+
+window.deletePlan = async (id) => {
+  if (!confirm('Delete this plan?')) return;
+  await api(`/api/admin/plans/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+window.editTrainer = async (id) => {
+  const item = await api(`/api/admin/trainers/${id}`);
+  const form = document.getElementById('trainerForm');
+  form.querySelector('[name="id"]').value = item._id;
+  form.querySelector('[name="name"]').value = item.name || '';
+  form.querySelector('[name="spec"]').value = item.spec || '';
+  form.querySelector('[name="clients"]').value = item.clients || '';
+  form.querySelector('[name="rating"]').value = item.rating || '';
+  form.querySelector('[name="sessions"]').value = item.sessions || '';
+  form.querySelector('[name="img"]').value = item.img || '';
+  switchPage('trainers', 'Trainers', 'trainers');
+};
+
+window.deleteTrainer = async (id) => {
+  if (!confirm('Delete this trainer?')) return;
+  await api(`/api/admin/trainers/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+window.editWorkout = async (id) => {
+  const item = await api(`/api/admin/workouts/${id}`);
+  const form = document.getElementById('workoutForm');
+  form.querySelector('[name="id"]').value = item._id;
+  form.querySelector('[name="name"]').value = item.name || '';
+  form.querySelector('[name="category"]').value = item.category || '';
+  form.querySelector('[name="duration"]').value = item.duration || '';
+  form.querySelector('[name="intensity"]').value = item.intensity || '';
+  form.querySelector('[name="trainer"]').value = item.trainer || '';
+  form.querySelector('[name="description"]').value = item.description || '';
+  switchPage('workouts', 'Workout Programs', 'workouts');
+};
+
+window.deleteWorkout = async (id) => {
+  if (!confirm('Delete this workout?')) return;
+  await api(`/api/admin/workouts/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+window.editDiet = async (id) => {
+  const item = await api(`/api/admin/diets/${id}`);
+  const form = document.getElementById('dietForm');
+  form.querySelector('[name="id"]').value = item._id;
+  form.querySelector('[name="name"]').value = item.name || '';
+  form.querySelector('[name="goal"]').value = item.goal || '';
+  form.querySelector('[name="calories"]').value = item.calories || '';
+  form.querySelector('[name="trainer"]').value = item.trainer || '';
+  form.querySelector('[name="meals"]').value = (item.meals || []).join(', ');
+  switchPage('diet', 'Diet Plans', 'diet');
+};
+
+window.deleteDiet = async (id) => {
+  if (!confirm('Delete this diet plan?')) return;
+  await api(`/api/admin/diets/${id}`, { method: 'DELETE' });
+  await refreshData();
+};
+
+await refreshData();
 
 }

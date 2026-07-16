@@ -4,13 +4,16 @@
 // rendering function below is otherwise byte-for-byte identical to the
 // original static panel.
 export async function initMemberPanel(token, apiBase) {
-  const api = (path) =>
-    fetch(apiBase + path, { headers: { Authorization: 'Bearer ' + token } }).then((r) => {
+  const base = apiBase.replace(/\/$/, '');
+  const api = (path) => {
+    const normalizedPath = path.replace(/^\/api/i, '');
+    return fetch(`${base}/api${normalizedPath}`, { headers: { Authorization: 'Bearer ' + token } }).then((r) => {
       if (!r.ok) throw new Error('API error ' + r.status + ' on ' + path);
       return r.json();
     });
+  };
 
-  const me = await api('/api/member/me');
+  const me = await api('/member/me');
 
 
 const ICON = {

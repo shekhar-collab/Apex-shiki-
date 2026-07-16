@@ -94,21 +94,54 @@
 <div class="breadcrumb">Home / <span>Member Management</span></div>
 <div class="page-head">
 <div><h2>Members</h2><p>2,481 total members across all membership tiers</p></div>
-<div class="head-actions"><button class="btn btn-ghost">Export CSV</button><button class="btn btn-gold">+ Add Member</button></div>
+<div class="head-actions"><button class="btn btn-ghost">Export CSV</button><button class="btn btn-gold" onclick="switchPage('admission')">+ Add Member</button></div>
 </div>
 <div class="card panel">
 <div class="table-toolbar">
 <div class="filters">
-<div class="filter-chip">All Plans ▾</div>
-<div class="filter-chip">Fee Status ▾</div>
-<div class="filter-chip">Trainer ▾</div>
+<select id="memberPlanFilter" class="filter-chip"><option value="">All Plans</option><option value="Elite">Elite</option><option value="Essential">Essential</option><option value="Private">Private</option></select>
+<select id="memberFeeFilter" class="filter-chip"><option value="">Fee Status</option><option value="green">Paid</option><option value="gold">Pending</option><option value="red">Overdue</option></select>
+<select id="memberTrainerFilter" class="filter-chip"><option value="">All Trainers</option></select>
 </div>
-<div class="search-box" style="width:260px;"><svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg><input placeholder="Search members..."/></div>
+<div class="search-box" style="width:260px;"><svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg><input id="memberSearchInput" placeholder="Search members..."/></div>
 </div>
 <table>
 <thead><tr><th>Member</th><th>Plan</th><th>Trainer</th><th>Join Date</th><th>Expiry</th><th>Attendance</th><th>BMI</th><th>Fee Status</th><th></th></tr></thead>
 <tbody id="membersBody"></tbody>
 </table>
+<div class="table-footer"><div id="memberPagination"></div></div>
+</div>
+</section>
+<!-- ================= NEW ADMISSION ================= -->
+<section class="page" id="page-admission">
+<div class="breadcrumb">Home / <span>New Admission</span></div>
+<div class="page-head"><div><h2>New Admission</h2><p>Register a member and assign a plan, trainer, and fee state in one step.</p></div></div>
+<div class="grid-2">
+<div class="card panel">
+<div class="panel-head"><div><h3>Admission Form</h3><div class="sub">Create a member profile instantly</div></div></div>
+<form id="admissionForm" class="stack-form">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Name</label><input name="name" required/></div>
+<div><label>Email</label><input name="email" type="email" required/></div>
+<div><label>Password</label><input name="password" type="password" value="Member@123"/></div>
+<div><label>Plan</label><select name="plan"><option value="Essential">Essential</option><option value="Elite">Elite</option><option value="Private">Private</option></select></div>
+<div><label>Trainer</label><select name="trainer"><option value="">Unassigned</option></select></div>
+<div><label>Fee Status</label><select name="fee"><option value="green">Paid</option><option value="gold">Pending</option><option value="red">Overdue</option></select></div>
+<div><label>Attendance %</label><input name="att" type="number" min="0" max="100" value="0"/></div>
+<div><label>BMI</label><input name="bmi" type="number" step="0.1" value="0"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Create Member</button></div>
+</form>
+</div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Admission Checklist</h3><div class="sub">Keep onboarding consistent</div></div></div>
+<div class="stack-list">
+<div class="list-chip">Create profile and login credentials</div>
+<div class="list-chip">Assign membership plan and trainer</div>
+<div class="list-chip">Set fee status and attendance baseline</div>
+</div>
+</div>
 </div>
 </section>
 <!-- ================= ATTENDANCE ================= -->
@@ -133,6 +166,47 @@
 <div class="panel-head"><div><h3>Monthly Attendance</h3><div class="sub">Trend over 6 months</div></div></div>
 <svg height="220" id="attendanceBar" viewbox="0 0 400 220" width="100%"></svg>
 </div>
+</div>
+<div class="card panel" style="margin-top:20px;">
+<div class="table-toolbar">
+<div class="filters"><select id="attendanceStatusFilter" class="filter-chip"><option value="">All</option><option value="Present">Present</option><option value="Late">Late</option><option value="Absent">Absent</option></select></div>
+<div class="search-box" style="width:260px;"><svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg><input id="attendanceSearchInput" placeholder="Search attendance..."/></div>
+</div>
+<div class="panel-head"><div><h3>Attendance Log</h3><div class="sub">Track check-ins, check-outs, and notes</div></div><button class="btn btn-gold" onclick="window.openAttendanceForm()">+ Log Attendance</button></div>
+<form id="attendanceForm" class="stack-form" style="margin-bottom:20px;">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Member</label><input name="memberName" required/></div>
+<div><label>Date</label><input name="date" type="date" required/></div>
+<div><label>Status</label><select name="status"><option>Present</option><option>Late</option><option>Absent</option></select></div>
+<div><label>Check In</label><input name="checkInTime"/></div>
+<div><label>Check Out</label><input name="checkOutTime"/></div>
+<div><label>Notes</label><input name="notes"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Save</button></div>
+</form>
+<table><thead><tr><th>Member</th><th>Date</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Notes</th><th></th></tr></thead><tbody id="attendanceBody"></tbody></table>
+<div class="table-footer"><div id="attendancePagination"></div></div>
+</div>
+</section>
+<!-- ================= MEMBERSHIP PLANS ================= -->
+<section class="page" id="page-plans">
+<div class="breadcrumb">Home / <span>Membership Plans</span></div>
+<div class="page-head"><div><h2>Membership Plans</h2><p>Launch, edit, and retire plans with ease.</p></div></div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Plan Library</h3><div class="sub">Keep pricing and perks up to date</div></div><button class="btn btn-gold" onclick="window.openPlanForm()">+ Add Plan</button></div>
+<form id="planForm" class="stack-form" style="margin-bottom:20px;">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Name</label><input name="name" required/></div>
+<div><label>Duration (Months)</label><input name="durationMonths" type="number" /></div>
+<div><label>Price</label><input name="price" type="number" /></div>
+<div><label>Status</label><select name="status"><option>Active</option><option>Popular</option><option>Paused</option></select></div>
+<div><label>Features</label><input name="features" placeholder="Comma separated features"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Save</button></div>
+</form>
+<table><thead><tr><th>Name</th><th>Duration</th><th>Price</th><th>Status</th><th>Features</th><th></th></tr></thead><tbody id="plansBody"></tbody></table>
 </div>
 </section>
 <!-- ================= FEE MANAGEMENT ================= -->
@@ -166,14 +240,94 @@
 </table>
 </div>
 </div>
+<div class="card panel" style="margin-top:20px;">
+<div class="panel-head"><div><h3>Fee Records</h3><div class="sub">Create, edit, and track fee invoices</div></div><button class="btn btn-gold" onclick="window.openFeeForm()">+ Create Fee</button></div>
+<form id="feeForm" class="stack-form" style="margin-bottom:20px;">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Member</label><input name="memberName" required/></div>
+<div><label>Plan</label><input name="plan"/></div>
+<div><label>Amount</label><input name="amount" type="number" required/></div>
+<div><label>Status</label><select name="status"><option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option></select></div>
+<div><label>Due Date</label><input name="dueDate" type="date"/></div>
+<div><label>Paid Date</label><input name="paidDate" type="date"/></div>
+<div><label>Method</label><input name="method"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Save</button></div>
+</form>
+<table><thead><tr><th>Member</th><th>Plan</th><th>Amount</th><th>Status</th><th>Due</th><th>Paid</th><th>Method</th><th></th></tr></thead><tbody id="feesBody"></tbody></table>
+<div class="table-footer"><div id="feesPagination"></div></div>
+</div>
+</section>
+<!-- ================= PENDING FEES ================= -->
+<section class="page" id="page-pendingfees">
+<div class="breadcrumb">Home / <span>Pending Fees</span></div>
+<div class="page-head"><div><h2>Pending Fees</h2><p>Resolve overdue invoices and follow up quickly.</p></div></div>
+<div class="card panel"><div class="panel-head"><div><h3>Outstanding Payments</h3><div class="sub">Pending and overdue fee records</div></div></div><table><thead><tr><th>Member</th><th>Plan</th><th>Amount</th><th>Due Date</th><th>Status</th><th></th></tr></thead><tbody id="pendingFeesBody"></tbody></table></div>
 </section>
 <!-- ================= TRAINERS ================= -->
 <section class="page" id="page-trainers">
 <div class="breadcrumb">Home / <span>Trainer Management</span></div>
 <div class="page-head"><div><h2>Trainers</h2><p>42 active coaches across all specializations</p></div>
-<div class="head-actions"><button class="btn btn-gold">+ Add Trainer</button></div>
+<div class="head-actions"><button class="btn btn-gold" onclick="window.openTrainerForm()">+ Add Trainer</button></div>
+</div>
+<div class="card panel" style="margin-bottom:20px;">
+<div class="table-toolbar"><div class="search-box" style="width:260px;"><svg class="icon" viewbox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg><input id="trainerSearchInput" placeholder="Search trainers..."/></div></div>
+<form id="trainerForm" class="stack-form">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Name</label><input name="name" required/></div>
+<div><label>Specialization</label><input name="spec"/></div>
+<div><label>Clients</label><input name="clients" type="number"/></div>
+<div><label>Rating</label><input name="rating" type="number" step="0.1"/></div>
+<div><label>Sessions</label><input name="sessions" type="number"/></div>
+<div><label>Image</label><input name="img"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Save</button></div>
+</form>
 </div>
 <div class="grid-4" id="trainerGrid"></div>
+</section>
+<!-- ================= WORKOUT PROGRAMS ================= -->
+<section class="page" id="page-workouts">
+<div class="breadcrumb">Home / <span>Workout Programs</span></div>
+<div class="page-head"><div><h2>Workout Programs</h2><p>Create and manage structured fitness sessions.</p></div></div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Programs</h3><div class="sub">Plan classes and training blocks</div></div><button class="btn btn-gold" onclick="window.openWorkoutForm()">+ Add Program</button></div>
+<form id="workoutForm" class="stack-form" style="margin-bottom:20px;">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Name</label><input name="name" required/></div>
+<div><label>Category</label><input name="category"/></div>
+<div><label>Duration</label><input name="duration"/></div>
+<div><label>Intensity</label><input name="intensity"/></div>
+<div><label>Trainer</label><input name="trainer"/></div>
+<div><label>Description</label><input name="description"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Save</button></div>
+</form>
+<table><thead><tr><th>Name</th><th>Category</th><th>Duration</th><th>Intensity</th><th>Trainer</th><th></th></tr></thead><tbody id="workoutsBody"></tbody></table>
+</div>
+</section>
+<!-- ================= DIET PLANS ================= -->
+<section class="page" id="page-diet">
+<div class="breadcrumb">Home / <span>Diet Plans</span></div>
+<div class="page-head"><div><h2>Diet Plans</h2><p>Support members with nutrition plans and meal guidance.</p></div></div>
+<div class="card panel">
+<div class="panel-head"><div><h3>Nutrition Plans</h3><div class="sub">Build healthy, measurable meal directions</div></div><button class="btn btn-gold" onclick="window.openDietForm()">+ Add Diet</button></div>
+<form id="dietForm" class="stack-form" style="margin-bottom:20px;">
+<input name="id" type="hidden"/>
+<div class="form-grid">
+<div><label>Name</label><input name="name" required/></div>
+<div><label>Goal</label><input name="goal"/></div>
+<div><label>Calories</label><input name="calories" type="number"/></div>
+<div><label>Trainer</label><input name="trainer"/></div>
+<div><label>Meals</label><input name="meals" placeholder="Comma separated"/></div>
+</div>
+<div class="form-actions"><button class="btn btn-gold" type="submit">Save</button></div>
+</form>
+<table><thead><tr><th>Name</th><th>Goal</th><th>Calories</th><th>Trainer</th><th>Meals</th><th></th></tr></thead><tbody id="dietsBody"></tbody></table>
+</div>
 </section>
 <!-- ================= ANALYTICS ================= -->
 <section class="page" id="page-analytics">
