@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm --prefix backend run dev\" \"npm --prefix landing-page run dev -- --host 0.0.0.0 --port 5173\"",
+    "dev": "concurrently -n backend,frontend -c blue,green \"PORT=5001 npm --prefix backend run dev\" \"npm --prefix landing-page run dev -- --host 0.0.0.0 --port 5174\"",
     "install:all": "npm install --prefix backend && npm install --prefix landing-page",
     "seed": "npm --prefix backend run seed"
   },
