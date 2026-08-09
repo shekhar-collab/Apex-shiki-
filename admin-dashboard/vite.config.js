@@ -10,7 +10,7 @@ export default defineConfig({
   base: '/admin/',
   server: {
     host: '0.0.0.0',
-    port: 5174,
+    port: 8000,
     strictPort: true,
     proxy: {
       '/api': {
