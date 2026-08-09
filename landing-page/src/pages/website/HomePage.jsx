@@ -11,6 +11,11 @@ export default function HomePage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [trialOpen, setTrialOpen] = useState(false);
+  const [trialData, setTrialData] = useState({ fullName: '', mobileNumber: '', email: '', preferredDate: '', preferredTimeSlot: '', fitnessGoal: '', age: '' });
+  const [trialError, setTrialError] = useState('');
+  const [trialSuccess, setTrialSuccess] = useState('');
+  const [trialLoading, setTrialLoading] = useState(false);
   const { login } = useAuth();
 
   useEffect(() => {
@@ -35,6 +40,17 @@ export default function HomePage() {
       item.addEventListener('click', handler);
       faqCleanups.push(() => item.removeEventListener('click', handler));
     });
+
+    // Book Free Trial button handler
+    const bookTrialBtn = container.querySelector('a.btn-glass[href="#programs"]');
+    if (bookTrialBtn) {
+      const trialHandler = (e) => {
+        e.preventDefault();
+        setTrialOpen(true);
+      };
+      bookTrialBtn.addEventListener('click', trialHandler);
+      faqCleanups.push(() => bookTrialBtn.removeEventListener('click', trialHandler));
+    }
 
     const form = container.querySelector('.contact-form');
     let submitHandler = null;
@@ -87,6 +103,58 @@ export default function HomePage() {
     };
   }, []);
 
+  function handleTrialChange(e) {
+    const { name, value } = e.target;
+    setTrialData(prev => ({ ...prev, [name]: value }));
+    if (trialError) setTrialError('');
+  }
+
+  async function handleTrialSubmit(e) {
+    e.preventDefault();
+    setTrialError('');
+    setTrialSuccess('');
+    
+    // Validation
+    if (!trialData.fullName.trim()) {
+      setTrialError('Full Name is required');
+      return;
+    }
+    if (!trialData.mobileNumber.trim()) {
+      setTrialError('Mobile Number is required');
+      return;
+    }
+    if (!trialData.preferredDate) {
+      setTrialError('Preferred Date is required');
+      return;
+    }
+    if (!trialData.preferredTimeSlot) {
+      setTrialError('Preferred Time Slot is required');
+      return;
+    }
+
+    setTrialLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/trial-booking`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trialData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Booking failed');
+      
+      setTrialSuccess('Trial booking submitted successfully! We will contact you shortly.');
+      setTrialData({ fullName: '', mobileNumber: '', email: '', preferredDate: '', preferredTimeSlot: '', fitnessGoal: '', age: '' });
+      setTimeout(() => {
+        setTrialOpen(false);
+        setTrialSuccess('');
+      }, 2500);
+    } catch (err) {
+      setTrialError(err.message || 'Booking failed');
+    } finally {
+      setTrialLoading(false);
+    }
+  }
+
   async function handleLoginSubmit(event) {
     event.preventDefault();
     if (!loginEmail || !loginPassword) {
@@ -118,6 +186,69 @@ export default function HomePage() {
   return (
     <>
       <div ref={rootRef} dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+      {trialOpen && (
+        <div className="trial-modal-overlay" onClick={() => !trialLoading && setTrialOpen(false)}>
+          <div className="trial-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="trial-modal-close" onClick={() => !trialLoading && setTrialOpen(false)} aria-label="Close trial booking" disabled={trialLoading}>
+              ×
+            </button>
+            <div className="trial-modal-title">Book Your Free Trial</div>
+            <p className="trial-modal-subtitle">Experience APEX with a personalized one-on-one session. Fill in your details and we will confirm your booking.</p>
+            {trialError && <div className="trial-error">{trialError}</div>}
+            {trialSuccess && <div className="trial-success">{trialSuccess}</div>}
+            <form onSubmit={handleTrialSubmit} className="trial-form">
+              <div className="form-row">
+                <div className="field">
+                  <label htmlFor="fullName">Full Name <span className="required">*</span></label>
+                  <input id="fullName" type="text" name="fullName" value={trialData.fullName} onChange={handleTrialChange} placeholder="John Doe" />
+                </div>
+                <div className="field">
+                  <label htmlFor="mobileNumber">Mobile Number <span className="required">*</span></label>
+                  <input id="mobileNumber" type="tel" name="mobileNumber" value={trialData.mobileNumber} onChange={handleTrialChange} placeholder="+91 98765 43210" />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="field">
+                  <label htmlFor="email">Email</label>
+                  <input id="email" type="email" name="email" value={trialData.email} onChange={handleTrialChange} placeholder="you@example.com" />
+                </div>
+                <div className="field">
+                  <label htmlFor="preferredDate">Preferred Date <span className="required">*</span></label>
+                  <input id="preferredDate" type="date" name="preferredDate" value={trialData.preferredDate} onChange={handleTrialChange} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="field">
+                  <label htmlFor="preferredTimeSlot">Preferred Time Slot <span className="required">*</span></label>
+                  <select id="preferredTimeSlot" name="preferredTimeSlot" value={trialData.preferredTimeSlot} onChange={handleTrialChange}>
+                    <option value="">Select a time slot</option>
+                    <option value="06:00-07:00">6:00 AM - 7:00 AM</option>
+                    <option value="07:00-08:00">7:00 AM - 8:00 AM</option>
+                    <option value="08:00-09:00">8:00 AM - 9:00 AM</option>
+                    <option value="17:00-18:00">5:00 PM - 6:00 PM</option>
+                    <option value="18:00-19:00">6:00 PM - 7:00 PM</option>
+                    <option value="19:00-20:00">7:00 PM - 8:00 PM</option>
+                    <option value="20:00-21:00">8:00 PM - 9:00 PM</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="age">Age</label>
+                  <input id="age" type="number" name="age" value={trialData.age} onChange={handleTrialChange} placeholder="25" min="16" max="100" />
+                </div>
+              </div>
+              <div className="form-row full">
+                <div className="field">
+                  <label htmlFor="fitnessGoal">Fitness Goal</label>
+                  <textarea id="fitnessGoal" name="fitnessGoal" value={trialData.fitnessGoal} onChange={handleTrialChange} placeholder="e.g., Build muscle, Lose weight, Improve endurance..."></textarea>
+                </div>
+              </div>
+              <button type="submit" className="trial-submit" disabled={trialLoading}>
+                {trialLoading ? 'Booking Trial...' : 'Book Your Free Trial'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
       {loginOpen && (
         <div className="login-modal-overlay" onClick={() => setLoginOpen(false)}>
           <div className="login-modal" onClick={(event) => event.stopPropagation()}>
