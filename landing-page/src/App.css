@@ -214,7 +214,26 @@
   .program-card:hover .program-link{opacity:1;transform:translateY(0);}
 
   /* ============ TRAINERS ============ */
-  .trainers{padding:130px 0;background:linear-gradient(180deg, transparent, var(--charcoal) 15%, var(--charcoal) 85%, transparent);}
+  .trainers{
+    position:relative;
+    padding:130px 0;
+    overflow:hidden;
+    background: url('/team.png') center/cover no-repeat fixed;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .trainers::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(rgba(10,10,10,0.55), rgba(10,10,10,0.75));
+    pointer-events:none;
+    z-index:0;
+  }
+  .trainers .wrap{
+    position:relative;
+    z-index:1;
+  }
   .trainers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:70px;}
   .trainer-card{
     background:var(--graphite);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
@@ -276,11 +295,25 @@
 
   /* ============ FACILITIES ============ */
   .facilities{
+    position:relative;
     padding:130px 0;
-    background:linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.65)), url('/facilities-bg.png') center/cover no-repeat fixed;
+    overflow:hidden;
+    background: linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.65)), url('/facilities-bg.png') center/cover no-repeat fixed;
     background-attachment:fixed;
     border-top:1px solid var(--line);
     border-bottom:1px solid var(--line);
+  }
+  .facilities::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(rgba(10,10,10,0.55), rgba(10,10,10,0.75));
+    pointer-events:none;
+    z-index:0;
+  }
+  .facilities .wrap{
+    position:relative;
+    z-index:1;
   }
   .fac-grid{
     display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:220px 220px;gap:20px;margin-top:70px;
@@ -296,9 +329,29 @@
   .fac-item::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%, rgba(0,0,0,0.55));}
 
   /* ============ TRANSFORMATIONS ============ */
-  .transform-section{padding:130px 0;}
+  .transform-section{
+    position:relative;
+    padding:130px 0;
+    overflow:hidden;
+    background: linear-gradient(rgba(10,10,10,0.15), rgba(10,10,10,0.45)), url('/transform-section.png') center/cover no-repeat fixed;
+    background-attachment:fixed;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .transform-section::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(rgba(10,10,10,0.15), rgba(10,10,10,0.25));
+    pointer-events:none;
+    z-index:0;
+  }
+  .transform-section .wrap{
+    position:relative;
+    z-index:1;
+  }
   .transform-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:70px;}
-  .transform-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--graphite);}
+  .transform-card{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:rgba(12,12,14,0.35);}
   .transform-imgs{display:grid;grid-template-columns:1fr 1fr;height:280px;}
   .transform-imgs img{width:100%;height:100%;object-fit:cover;}
   .transform-imgs .before{filter:grayscale(60%) brightness(0.85);}
