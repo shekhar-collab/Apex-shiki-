@@ -22,6 +22,110 @@ export default function HomePage() {
     const container = rootRef.current;
     if (!container) return;
 
+    const getImageSrc = (img) => {
+      if (!img) return 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1200&auto=format&fit=crop';
+      if (/^https?:\/\//i.test(img)) return img;
+      return `https://images.unsplash.com/${img}?q=80&w=1200&auto=format&fit=crop`;
+    };
+
+    let cancelled = false;
+
+    const renderHomeContent = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/contact/home-content`);
+        const data = await res.json();
+        if (!res.ok || cancelled) return;
+
+        const trainers = Array.isArray(data?.trainers) ? data.trainers : [];
+        const plans = Array.isArray(data?.plans) ? data.plans : [];
+        const workouts = Array.isArray(data?.workouts) ? data.workouts : [];
+
+        const programsGrid = container.querySelector('.programs-grid');
+        if (programsGrid) {
+          const programs = (workouts.length ? workouts : [
+            { name: 'Performance Strength', description: 'Progressive overload programming for serious, measurable gains.', category: 'Strength' },
+            { name: 'Hybrid Conditioning', description: 'Energy system training focused on endurance, recovery, and resilience.', category: 'Conditioning' },
+            { name: 'Rebuild & Recover', description: 'Mobility, mobility, and strength programming for sustainable progress.', category: 'Recovery' },
+          ])
+            .slice(0, 3)
+            .map((item, index) => `
+              <div class="program-card">
+                <img alt="${item.name}" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200&auto=format&fit=crop" />
+                <div class="overlay"></div>
+                <div class="content">
+                  <span class="program-num">0${index + 1}</span>
+                  <h3>${item.name}</h3>
+                  <p>${item.description || `${item.category || 'Performance'} program curated by our coaching team.`}</p>
+                  <span class="program-link">Discover Program →</span>
+                </div>
+              </div>
+            `)
+            .join('');
+          programsGrid.innerHTML = programs;
+        }
+
+        const trainersGrid = container.querySelector('.trainers-grid');
+        if (trainersGrid) {
+          const trainerCards = (trainers.length ? trainers : [
+            { name: 'Elena Cross', spec: 'Performance Coach', img: 'photo-1594381898411-846e7d193883' },
+            { name: 'Marcus Reed', spec: 'Strength Specialist', img: 'photo-1526506118085-60ce8714f8c5' },
+            { name: 'Nina Patel', spec: 'Mobility Coach', img: 'photo-1571019613454-1cb2f99b2d8b' },
+          ])
+            .slice(0, 4)
+            .map((trainer) => `
+              <div class="trainer-card">
+                <div class="trainer-photo">
+                  <img alt="${trainer.name}" src="${getImageSrc(trainer.img)}" />
+                  <div class="trainer-social"><span>in</span><span>ig</span></div>
+                </div>
+                <div class="trainer-info">
+                  <h4>${trainer.name}</h4>
+                  <div class="role">${trainer.spec || 'Certified Coach'}</div>
+                  <div class="desc">${trainer.clients ? `${trainer.clients} clients coached` : 'Trusted by athletes and busy professionals alike.'}</div>
+                </div>
+              </div>
+            `)
+            .join('');
+          trainersGrid.innerHTML = trainerCards;
+        }
+
+        const plansGrid = container.querySelector('.plans-grid');
+        if (plansGrid) {
+          const membershipCards = (plans.length ? plans : [
+            { name: 'Essential', price: 89, features: ['Full gym access', 'Recovery suite access'] },
+            { name: 'Elite', price: 179, features: ['Dedicated coaching', 'Custom nutrition plan'] },
+            { name: 'Private', price: 349, features: ['Bespoke coaching', 'Priority booking'] },
+          ])
+            .slice(0, 3)
+            .map((plan, index) => {
+              const featured = index === 1;
+              const features = Array.isArray(plan.features) && plan.features.length ? plan.features : ['Coach support', 'Premium access', 'Recovery perks'];
+              return `
+                <div class="plan-card${featured ? ' featured' : ''}">
+                  ${featured ? '<div class="plan-badge">Most Popular</div>' : ''}
+                  <div class="plan-name">${plan.name}</div>
+                  <div class="plan-price">₹${Number(plan.price || 0).toLocaleString('en-IN')}<span>/mo</span></div>
+                  <p class="plan-desc">${plan.description || 'Flexible membership designed around your lifestyle and goals.'}</p>
+                  <ul class="plan-list">
+                    ${features.map((feature) => `<li>${feature}</li>`).join('')}
+                  </ul>
+                  <div class="plan-btn">Get Started</div>
+                </div>
+              `;
+            })
+            .join('');
+          plansGrid.innerHTML = membershipCards;
+        }
+      } catch (err) {
+        console.error('Could not load home content', err);
+      }
+    };
+
+    renderHomeContent();
+    const refreshTimer = window.setInterval(() => {
+      renderHomeContent();
+    }, 15000);
+
     const faqItems = container.querySelectorAll('.faq-item');
     const faqCleanups = [];
     faqItems.forEach((item) => {
@@ -95,6 +199,8 @@ export default function HomePage() {
     }
 
     return () => {
+      cancelled = true;
+      window.clearInterval(refreshTimer);
       faqCleanups.forEach((fn) => fn());
       if (form && submitHandler) {
         const sendBtn = form.querySelector('.btn.btn-solid');

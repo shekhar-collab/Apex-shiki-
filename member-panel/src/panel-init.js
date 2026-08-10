@@ -14,7 +14,13 @@ export async function initMemberPanel(token, apiBase) {
   };
 
   const me = await api('/member/me');
+  const [planData, trainerData] = await Promise.all([
+    api('/api/contact/plans-public').catch(() => []),
+    api('/api/contact/trainers-public').catch(() => []),
+  ]);
 
+  const membershipPlan = Array.isArray(planData) ? planData.find((plan) => (plan.name || '').toLowerCase() === String(me.plan || '').toLowerCase()) || planData[0] : null;
+  const selectedTrainer = Array.isArray(trainerData) ? trainerData[0] : null;
 
 const ICON = {
   dashboard:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -99,6 +105,30 @@ function heatCells(n, active){
 document.getElementById('dashHeat').innerHTML = heatCells(14,10);
 document.getElementById('fullHeat').innerHTML = heatCells(21,16);
 
+const memberNameEl = document.querySelector('.admin-chip .name');
+if (memberNameEl) memberNameEl.textContent = me.name || 'Member';
+const memberRoleEl = document.querySelector('.admin-chip .role');
+if (memberRoleEl) memberRoleEl.textContent = me.plan || 'Member';
+
+const planTitleEl = document.getElementById('membershipPlanTitle');
+if (planTitleEl) planTitleEl.textContent = membershipPlan?.name || me.plan || 'Membership';
+const planMetaEl = document.getElementById('membershipPlanMeta');
+if (planMetaEl) {
+  const expiry = me.expiry || 'your next billing date';
+  planMetaEl.textContent = membershipPlan ? `${membershipPlan.durationMonths || 1} month plan • Renews on ${expiry}` : `Renews on ${expiry}`;
+}
+const planBadgeEl = document.getElementById('membershipPlanBadge');
+if (planBadgeEl) planBadgeEl.textContent = me.fee === 'gold' ? 'Active' : 'Active';
+const planDescEl = document.getElementById('membershipPlanDescription');
+if (planDescEl) {
+  const features = Array.isArray(membershipPlan?.features) && membershipPlan.features.length ? membershipPlan.features.join(' • ') : 'Live coaching, nutrition guidance, and premium access.';
+  planDescEl.textContent = `${membershipPlan ? `₹${Number(membershipPlan.price || 0).toLocaleString('en-IN')}/mo` : '$0/mo'} • ${features}`;
+}
+const trainerNameEl = document.getElementById('trainerName');
+if (trainerNameEl) trainerNameEl.textContent = me.trainer || selectedTrainer?.name || 'Your coach';
+const trainerSpecEl = document.getElementById('trainerSpec');
+if (trainerSpecEl) trainerSpecEl.textContent = selectedTrainer?.spec || 'Assigned coach';
+
 /* ===== Weekly activity bar chart ===== */
 function barChart(svgId, data, labels, colors, w, h){
   const svg=document.getElementById(svgId); const pad=24, gap=16;
@@ -179,7 +209,7 @@ document.getElementById('bookingsFull').innerHTML = BOOKINGS.map(bookingHTML).jo
 const BOOK_TRAINERS = await api('/api/contact/trainers-public');
 document.getElementById('trainerBookGrid').innerHTML = BOOK_TRAINERS.map(t=>`
   <div style="display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);border-radius:12px;">
-    <img src="https://images.unsplash.com/photo-${t.img}?q=80&w=100&auto=format&fit=crop" style="width:44px;height:44px;border-radius:11px;object-fit:cover;">
+    <img src="${/^https?:\/\//i.test(t.img || '') ? t.img : `https://images.unsplash.com/${t.img || 'photo-1571019613454-1cb2f99b2d8b'}?q=80&w=100&auto=format&fit=crop`}" style="width:44px;height:44px;border-radius:11px;object-fit:cover;">
     <div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">${t.name}</div><div style="font-size:11.5px;color:var(--gold-bright);">${t.spec}</div></div>
     <button class="btn btn-ghost" style="padding:8px 16px;font-size:12px;">Book</button>
   </div>`).join('');

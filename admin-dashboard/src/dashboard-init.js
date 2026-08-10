@@ -342,6 +342,8 @@ function renderTrainers(list = TRAINERS) {
         <div><div class="v">${t.sessions}</div><div class="l">Today</div></div>
       </div>
     </div>`).join('');
+  const trainerSelect = document.querySelector('#admissionForm [name="trainer"]');
+  if (trainerSelect) populateTrainerSelect(trainerSelect, trainerSelect.value || '');
 }
 renderTrainers(TRAINERS);
 
@@ -431,6 +433,8 @@ async function refreshData() {
   renderMembers(members);
   TRAINERS = trainers;
   renderTrainers(trainers);
+  const trainerSelect = document.querySelector('#admissionForm [name="trainer"]');
+  if (trainerSelect) populateTrainerSelect(trainerSelect, trainerSelect.value || '');
   renderAttendance(attendance);
   renderFees(fees);
   renderPendingFees(fees.filter((fee) => fee.status !== 'Paid'));
@@ -449,15 +453,14 @@ function normalizeForm(form) {
   if (data.rating) data.rating = Number(data.rating);
   if (data.sessions) data.sessions = Number(data.sessions);
   if (data.calories) data.calories = Number(data.calories);
-  if (data.att) data.att = Number(data.att);
-  if (data.bmi) data.bmi = Number(data.bmi);
+  if (data.att !== '') data.att = Number(data.att);
+  if (data.bmi !== '') data.bmi = Number(data.bmi);
   if (data.id === '') delete data.id;
   return data;
 }
 
 async function submitForm(url, payload, method = 'POST') {
-  await api(url, { method, body: JSON.stringify(payload) });
-  await refreshData();
+  return api(url, { method, body: JSON.stringify(payload) });
 }
 
 function setupForm(formId, handler) {
@@ -471,8 +474,35 @@ function setupForm(formId, handler) {
   });
 }
 
+function populateTrainerSelect(select, value = '') {
+  if (!select) return;
+  const currentValue = value || select.value || '';
+  const options = ['<option value="">Unassigned</option>', ...TRAINERS.map((trainer) => `<option value="${trainer.name}" ${trainer.name === currentValue ? 'selected' : ''}>${trainer.name}</option>`)]
+    .join('');
+  select.innerHTML = options;
+}
+
+function setAdmissionStatus(message, type = 'success') {
+  const status = document.getElementById('admissionStatus');
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = type === 'error' ? '#e2725b' : '#e8cd90';
+}
+
 setupForm('admissionForm', async (payload) => {
-  await submitForm('/api/admin/members', payload);
+  try {
+    const url = payload.id ? `/api/admin/members/${payload.id}` : '/api/admin/members';
+    const method = payload.id ? 'PATCH' : 'POST';
+    await submitForm(url, payload, method);
+    await refreshData();
+    setAdmissionStatus(payload.id ? 'Member updated successfully.' : 'Member created successfully.');
+    if (!payload.id) {
+      const form = document.getElementById('admissionForm');
+      if (form) form.reset();
+    }
+  } catch (error) {
+    setAdmissionStatus(error.message || 'Could not save member.', 'error');
+  }
 });
 
 setupForm('planForm', async (payload) => {
@@ -633,7 +663,8 @@ window.editMember = async (id) => {
   form.querySelector('[name="name"]').value = member.name || '';
   form.querySelector('[name="email"]').value = member.email || '';
   form.querySelector('[name="plan"]').value = member.plan || 'Essential';
-  form.querySelector('[name="trainer"]').value = member.trainer || '';
+  const trainerSelect = form.querySelector('[name="trainer"]');
+  populateTrainerSelect(trainerSelect, member.trainer || '');
   form.querySelector('[name="fee"]').value = member.fee || 'green';
   form.querySelector('[name="att"]').value = member.att || 0;
   form.querySelector('[name="bmi"]').value = member.bmi || 0;
