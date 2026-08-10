@@ -164,13 +164,6 @@ function switchPage(id, label, icon){
   }
 }
 
-/* ============ CLOCK ============ */
-function tick(){
-  const d = new Date();
-  document.getElementById('clock').textContent = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-}
-tick(); setInterval(tick, 30000);
-
 /* ============ DASHBOARD DATA ============ */
 const dashboardSummary = await api('/api/admin/dashboard-summary').catch(() => ({}));
 const KPIS = dashboardSummary.kpis || [];
@@ -639,9 +632,32 @@ window.refreshDashboard = refreshData;
 window.openAttendanceForm = () => { document.getElementById('attendanceForm').reset(); };
 window.openFeeForm = () => { document.getElementById('feeForm').reset(); };
 window.openPlanForm = () => { document.getElementById('planForm').reset(); };
-window.openTrainerForm = () => { document.getElementById('trainerForm').reset(); };
+window.openTrainerForm = () => {
+  const form = document.getElementById('trainerForm');
+  if (!form) return;
+  form.reset();
+  const fileInput = document.getElementById('trainerImageFile');
+  if (fileInput) fileInput.value = '';
+};
 window.openWorkoutForm = () => { document.getElementById('workoutForm').reset(); };
 window.openDietForm = () => { document.getElementById('dietForm').reset(); };
+
+const trainerForm = document.getElementById('trainerForm');
+if (trainerForm) {
+  const fileInput = document.getElementById('trainerImageFile');
+  const imageField = trainerForm.querySelector('[name="img"]');
+
+  fileInput?.addEventListener('change', async (event) => {
+    const [file] = event.target.files || [];
+    if (!file || !imageField) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      imageField.value = String(reader.result || '');
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 window.editMember = async (id) => {
   const member = await api(`/api/admin/members/${id}`);

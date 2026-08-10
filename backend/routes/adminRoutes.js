@@ -441,6 +441,16 @@ router.get('/trainers', async (req, res) => {
   }
 });
 
+router.get('/trainers/:id', async (req, res) => {
+  try {
+    const trainer = await Trainer.findByPk(req.params.id);
+    if (!trainer) return res.status(404).json({ message: 'Trainer not found' });
+    res.json(trainer);
+  } catch (err) {
+    res.status(400).json({ message: 'Invalid trainer id', error: err.message });
+  }
+});
+
 router.post('/trainers', async (req, res) => {
   try {
     if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can manage trainers' });

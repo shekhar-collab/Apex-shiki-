@@ -83,7 +83,8 @@ svg{display:block;}
   display:flex;align-items:center;justify-content:space-between;
   padding:0 32px;position:sticky;top:0;background:rgba(10,10,11,0.85);backdrop-filter:blur(16px);z-index:20;
 }
-.topbar-left{display:flex;align-items:center;gap:22px;}
+.topbar-left,.topbar-right{display:flex;align-items:center;flex:0 0 auto;}
+.topbar-center{display:flex;align-items:center;justify-content:center;flex:1;padding:0 24px;}
 .page-title{font-family:var(--serif);font-size:22px;font-weight:600;}
 .search-box{
   display:flex;align-items:center;gap:10px;background:var(--graphite);border:1px solid var(--line);
