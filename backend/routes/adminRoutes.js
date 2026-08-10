@@ -407,6 +407,20 @@ router.delete('/fees/:id', async (req, res) => {
   res.status(204).end();
 });
 
+router.post('/fees/:id/remind', async (req, res) => {
+  try {
+    if (!canWrite(req)) return res.status(403).json({ message: 'Forbidden: only admins can manage fees' });
+    const fee = await FeeRecord.findByPk(req.params.id);
+    if (!fee) return res.status(404).json({ message: 'Fee record not found' });
+
+    const reminder = buildFeeReminderNotification(fee.toJSON());
+    const notification = await Notification.create(reminder);
+    res.status(201).json(notification);
+  } catch (error) {
+    res.status(400).json({ message: 'Could not send fee reminder', error: error.message });
+  }
+});
+
 /* ----------------------------- Trainers ----------------------------- */
 router.get('/trainers', async (req, res) => {
   try {

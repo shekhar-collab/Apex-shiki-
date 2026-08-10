@@ -100,7 +100,6 @@ const NAV = [
   {label:'Billing', items:[
     {id:'plans', label:'Membership Plans', icon:'plans'},
     {id:'fees', label:'Fee Management', icon:'fees'},
-    {id:'pendingfees', label:'Pending Fees', icon:'pending', badge:'34'},
   ]},
   {label:'Fitness', items:[
     {id:'trainers', label:'Trainers', icon:'trainers'},
@@ -130,7 +129,7 @@ const NAV = [
     {id:'settings', label:'Settings', icon:'settings'},
   ]},
 ];
-const FULL_PAGES = ['dashboard','members','admission','attendance','plans','fees','pendingfees','trainers','workouts','diet','analytics','notifications','settings','streaks'];
+const FULL_PAGES = ['dashboard','members','admission','attendance','plans','fees','trainers','workouts','diet','analytics','notifications','settings','streaks'];
 
 const navContainer = document.getElementById('navContainer');
 NAV.forEach(group=>{
@@ -435,7 +434,6 @@ async function refreshData() {
   if (trainerSelect) populateTrainerSelect(trainerSelect, trainerSelect.value || '');
   renderAttendance(attendance);
   renderFees(fees);
-  renderPendingFees(fees.filter((fee) => fee.status !== 'Paid'));
   renderPlans(plans);
   renderWorkouts(workouts);
   renderDiets(diets);
@@ -592,20 +590,6 @@ function renderFees(list) {
       <td>${item.paidDate || '—'}</td>
       <td>${item.method || 'UPI'}</td>
       <td><div class="row-actions"><span onclick="window.editFee('${item._id}')">✎</span><span onclick="window.deleteFee('${item._id}')">⋯</span></div></td>
-    </tr>`).join('');
-}
-
-function renderPendingFees(list) {
-  const body = document.getElementById('pendingFeesBody');
-  if (!body) return;
-  body.innerHTML = list.map((item) => `
-    <tr>
-      <td>${item.memberName}</td>
-      <td>${item.plan}</td>
-      <td>${item.amount}</td>
-      <td>${item.dueDate || '—'}</td>
-      <td><span class="badge ${item.status === 'Overdue' ? 'red' : 'gold'}">${item.status}</span></td>
-      <td><div class="row-actions"><span onclick="window.editFee('${item._id}')">✎</span></div></td>
     </tr>`).join('');
 }
 
