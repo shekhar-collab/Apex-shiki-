@@ -12,7 +12,7 @@ const contactRoutes = require('./routes/contactRoutes');
 
 const app = express();
 const HOST = process.env.HOST || '0.0.0.0';
-const DEFAULT_PORT = Number(process.env.PORT || 5000);
+const DEFAULT_PORT = Number(process.env.PORT || 5001);
 
 const allowedOrigins = (process.env.CLIENT_ORIGINS || '')
   .split(',')

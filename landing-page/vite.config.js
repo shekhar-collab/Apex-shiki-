@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function getBackendTarget() {
-  return process.env.VITE_API_PROXY_TARGET || process.env.VITE_API_URL || 'http://localhost:5000';
+  return process.env.VITE_API_PROXY_TARGET || process.env.VITE_API_URL || 'http://localhost:5001';
 }
 
 export default defineConfig({

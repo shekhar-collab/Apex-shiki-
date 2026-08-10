@@ -31,7 +31,7 @@ npm install
 cp .env.example .env
 # .env mein apna MONGO_URI aur JWT_SECRET set karein
 npm run seed     # database mein demo data daal dega (members, trainers, kpis, etc.)
-npm run dev      # http://localhost:5000 par server chalu ho jayega
+npm run dev      # http://localhost:5001 par server chalu ho jayega
 ```
 
 **Demo login credentials (seed ke baad):**
