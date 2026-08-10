@@ -13,6 +13,7 @@ const contactRoutes = require('./routes/contactRoutes');
 const app = express();
 const HOST = process.env.HOST || '0.0.0.0';
 const DEFAULT_PORT = Number(process.env.PORT || 5001);
+const MAX_PORT_RETRY_COUNT = 10;
 
 const allowedOrigins = (process.env.CLIENT_ORIGINS || '')
   .split(',')
@@ -67,21 +68,45 @@ app.use((err, req, res, next) => {
 });
 
 async function startServer() {
-  const port = DEFAULT_PORT;
+  let port = DEFAULT_PORT;
+  let attempt = 0;
 
-  const server = app.listen(port, HOST, () => {
-    console.log(`[server] ✔ Backend Started`);
-    console.log(`[server] ✔ Database Connected`);
-    console.log(`[server] ✔ Authentication Ready`);
-    console.log(`[server] ✔ Admin Routes Loaded`);
-    console.log(`[server] ✔ API Ready`);
-    console.log(`[server] Running successfully on http://${HOST}:${port}`);
-  });
+  const listen = () => {
+    return new Promise((resolve, reject) => {
+      const server = app.listen(port, HOST, () => {
+        console.log(`[server] ✔ Backend Started`);
+        console.log(`[server] ✔ Database Connected`);
+        console.log(`[server] ✔ Authentication Ready`);
+        console.log(`[server] ✔ Admin Routes Loaded`);
+        console.log(`[server] ✔ API Ready`);
+        console.log(`[server] Running successfully on http://${HOST}:${port}`);
+        resolve(server);
+      });
 
-  server.on('error', (err) => {
-    console.error('[server] Failed to start server:', err.message);
-    process.exit(1);
-  });
+      server.on('error', (err) => {
+        reject(err);
+      });
+    });
+  };
+
+  while (attempt <= MAX_PORT_RETRY_COUNT) {
+    try {
+      return await listen();
+    } catch (err) {
+      if (err.code === 'EADDRINUSE' && attempt < MAX_PORT_RETRY_COUNT) {
+        console.warn(`[server] Port ${port} is already in use, trying ${port + 1}...`);
+        port += 1;
+        attempt += 1;
+        continue;
+      }
+
+      console.error('[server] Failed to start server:', err.message);
+      process.exit(1);
+    }
+  }
+
+  console.error('[server] Failed to start server: no available ports');
+  process.exit(1);
 }
 
 async function bootstrap() {
