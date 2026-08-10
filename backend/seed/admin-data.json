@@ -163,6 +163,36 @@
       "sessions": 7
     }
   ],
+  "DIETS": [
+    {
+      "name": "Lean Build Plan",
+      "goal": "Muscle gain",
+      "calories": 2700,
+      "meals": ["Egg white omelette", "Grilled chicken bowl", "Greek yogurt parfait"],
+      "trainer": "Sofia Novak"
+    },
+    {
+      "name": "Fat Loss Reset",
+      "goal": "Weight loss",
+      "calories": 1900,
+      "meals": ["Protein oats", "Salad wrap", "Grilled salmon with greens"],
+      "trainer": "Elena Cross"
+    },
+    {
+      "name": "Performance Recovery",
+      "goal": "Recovery & endurance",
+      "calories": 2300,
+      "meals": ["Smoothie bowl", "Turkey quinoa salad", "Veggie stir fry"],
+      "trainer": "Jordan Blake"
+    },
+    {
+      "name": "Balanced Wellness",
+      "goal": "General health",
+      "calories": 2100,
+      "meals": ["Fruit smoothie", "Grilled tofu bowl", "Chicken and veggies"],
+      "trainer": "Marcus Reid"
+    }
+  ],
   "NOTIFS": [
     {
       "icon": "pending",
