@@ -112,12 +112,6 @@ const NAV = [
   {label:'Engagement', items:[
     {id:'streaks', label:'Streak Tracker', icon:'streak', badge:'9'},
   ]},
-  {label:'Commerce', items:[
-    {id:'store', label:'Supplement Store', icon:'store'},
-    {id:'orders', label:'Orders', icon:'orders'},
-    {id:'inventory', label:'Inventory', icon:'inventory'},
-    {id:'equipment', label:'Equipment Management', icon:'equipment'},
-  ]},
   {label:'Finance', items:[
     {id:'expenses', label:'Expenses', icon:'expenses'},
     {id:'revenue', label:'Revenue', icon:'revenue'},
@@ -333,6 +327,10 @@ let TRAINERS = dashboardSummary.trainers || [];
 function renderTrainers(list = TRAINERS) {
   document.getElementById('trainerGrid').innerHTML = list.map(t=>`
     <div class="card trainer-card">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
+        <button type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:11px;" onclick="window.editTrainer('${t._id || t.id}')">Edit</button>
+        <button type="button" class="btn btn-gold" style="padding:6px 10px;font-size:11px;" onclick="window.deleteTrainer('${t._id || t.id}')">Remove</button>
+      </div>
       <img src="https://images.unsplash.com/photo-${t.img || '1519085360753-af0119f7cbe7'}?q=80&w=200&auto=format&fit=crop">
       <h4>${t.name}</h4>
       <div class="spec">${t.spec}</div>
@@ -530,10 +528,16 @@ setupForm('feeForm', async (payload) => {
 });
 
 setupForm('trainerForm', async (payload) => {
-  if (payload.id) {
-    await submitForm(`/api/admin/trainers/${payload.id}`, payload, 'PATCH');
-  } else {
-    await submitForm('/api/admin/trainers', payload, 'POST');
+  try {
+    if (payload.id) {
+      await submitForm(`/api/admin/trainers/${payload.id}`, payload, 'PATCH');
+    } else {
+      await submitForm('/api/admin/trainers', payload, 'POST');
+    }
+    await refreshData();
+  } catch (error) {
+    console.error('Trainer save failed:', error);
+    throw error;
   }
 });
 
@@ -737,12 +741,13 @@ window.deletePlan = async (id) => {
 window.editTrainer = async (id) => {
   const item = await api(`/api/admin/trainers/${id}`);
   const form = document.getElementById('trainerForm');
-  form.querySelector('[name="id"]').value = item._id;
+  if (!form) return;
+  form.querySelector('[name="id"]').value = item.id || item._id || '';
   form.querySelector('[name="name"]').value = item.name || '';
   form.querySelector('[name="spec"]').value = item.spec || '';
-  form.querySelector('[name="clients"]').value = item.clients || '';
-  form.querySelector('[name="rating"]').value = item.rating || '';
-  form.querySelector('[name="sessions"]').value = item.sessions || '';
+  form.querySelector('[name="clients"]').value = item.clients ?? '';
+  form.querySelector('[name="rating"]').value = item.rating ?? '';
+  form.querySelector('[name="sessions"]').value = item.sessions ?? '';
   form.querySelector('[name="img"]').value = item.img || '';
   switchPage('trainers', 'Trainers', 'trainers');
 };
