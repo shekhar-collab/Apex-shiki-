@@ -24,8 +24,11 @@ export default function HomePage() {
 
     const getImageSrc = (img) => {
       if (!img) return 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1200&auto=format&fit=crop';
+      if (/^data:image\//i.test(img)) return img;
       if (/^https?:\/\//i.test(img)) return img;
-      return `https://images.unsplash.com/${img}?q=80&w=1200&auto=format&fit=crop`;
+      if (/^\/|^\./.test(img)) return img;
+      if (/^photo-/i.test(img)) return `https://images.unsplash.com/${img}?q=80&w=1200&auto=format&fit=crop`;
+      return `https://images.unsplash.com/photo-${img}?q=80&w=1200&auto=format&fit=crop`;
     };
 
     let cancelled = false;

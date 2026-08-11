@@ -3,7 +3,7 @@ import WebsiteLayout from './layouts/WebsiteLayout';
 import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
 import ProtectedRoute from './routes/ProtectedRoute';
-import HomePagePublic from './pages/website/HomePagePublic';
+import HomePage from './pages/website/HomePage';
 import AboutPage from './pages/website/AboutPage';
 import ServicesPage from './pages/website/ServicesPage';
 import ProductsPage from './pages/website/ProductsPage';
@@ -20,7 +20,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: <WebsiteLayout />,
     children: [
-      { index: true, element: <HomePagePublic /> },
+      { index: true, element: <HomePage /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'services', element: <ServicesPage /> },
       { path: 'products', element: <ProductsPage /> },

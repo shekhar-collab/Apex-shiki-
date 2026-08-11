@@ -5,18 +5,42 @@
 // original static panel.
 export async function initMemberPanel(token, apiBase) {
   const base = apiBase.replace(/\/$/, '');
-  const api = (path) => {
+  const api = (path, options = {}) => {
     const normalizedPath = path.replace(/^\/api/i, '');
-    return fetch(`${base}/api${normalizedPath}`, { headers: { Authorization: 'Bearer ' + token } }).then((r) => {
+    const method = options.method || 'GET';
+    const headers = {
+      Authorization: 'Bearer ' + token,
+      ...(options.headers || {}),
+    };
+
+    if (method !== 'GET' && method !== 'HEAD') {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return fetch(`${base}/api${normalizedPath}`, {
+      method,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    }).then((r) => {
       if (!r.ok) throw new Error('API error ' + r.status + ' on ' + path);
-      return r.json();
+      return r.text().then((text) => (text ? JSON.parse(text) : null));
     });
   };
 
   const me = await api('/member/me');
-  const [planData, trainerData] = await Promise.all([
+  const [planData, trainerData, workoutData] = await Promise.all([
     api('/api/contact/plans-public').catch(() => []),
     api('/api/contact/trainers-public').catch(() => []),
+    api('/member/me/workout').catch(() => ({
+      title: 'Today — Push Day',
+      subtitle: 'Chest · Shoulders · Triceps · 45 min',
+      trainer: me.trainer || 'Marcus Reid',
+      exercises: Array.isArray(me.exercises) ? me.exercises : [],
+      weekPlan: Array.isArray(me.weekPlan) ? me.weekPlan : [],
+      total: Array.isArray(me.exercises) ? me.exercises.length : 0,
+      completed: (Array.isArray(me.exercises) ? me.exercises : []).filter((exercise) => exercise?.done).length,
+      isComplete: false,
+    })),
   ]);
 
   const membershipPlan = Array.isArray(planData) ? planData.find((plan) => (plan.name || '').toLowerCase() === String(me.plan || '').toLowerCase()) || planData[0] : null;
@@ -187,16 +211,147 @@ document.getElementById('mealList').innerHTML = MEALS.map(m=>`
   <div class="meal-item"><div class="meal-time">${m.time}</div><div class="meal-body"><h5>${m.name}</h5><p>${m.desc}</p></div><div class="meal-cal">${m.cal} kcal</div></div>`).join('');
 
 /* ===== Exercises ===== */
-const EXERCISES = me.exercises || [];
-document.getElementById('exerciseList').innerHTML = EXERCISES.map((e,i)=>`
-  <div class="exercise-row"><div class="ex-num">${i+1}</div><div class="ex-body"><h5>${e.name}</h5><p>${e.detail}</p></div><div class="ex-check ${e.done?'done':''}">${e.done?'✓':''}</div></div>`).join('');
+const EXERCISES = Array.isArray(workoutData?.exercises) && workoutData.exercises.length ? workoutData.exercises : (me.exercises || []);
+const WEEK = Array.isArray(workoutData?.weekPlan) && workoutData.weekPlan.length ? workoutData.weekPlan : (me.weekPlan || []);
 
-const WEEK = me.weekPlan || [];
-document.getElementById('weekStrip').innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">
-  ${WEEK.map(w=>`<div style="text-align:center;padding:12px 4px;border-radius:10px;background:${w.done?'var(--gold-glow)':'var(--graphite-light)'};border:1px solid ${w.done?'var(--gold-dim)':'var(--line)'};">
-    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">${w.d}</div>
-    <div style="font-size:11.5px;font-weight:700;margin-top:6px;color:${w.done?'var(--gold-bright)':'var(--ivory)'};">${w.l}</div>
-  </div>`).join('')}</div>`;
+async function saveWorkoutState(nextExercises = EXERCISES, nextWeekPlan = WEEK) {
+  try {
+    const saved = await api('/member/me/workout', {
+      method: 'PATCH',
+      body: {
+        exercises: nextExercises,
+        weekPlan: nextWeekPlan,
+      },
+    });
+
+    if (Array.isArray(saved.exercises)) {
+      EXERCISES.splice(0, EXERCISES.length, ...saved.exercises);
+    }
+    if (Array.isArray(saved.weekPlan)) {
+      WEEK.splice(0, WEEK.length, ...saved.weekPlan);
+    }
+    renderWorkoutSection();
+    renderWeekPlan();
+  } catch (error) {
+    console.error('Could not save workout updates', error);
+  }
+}
+
+function renderWorkoutSection() {
+  const workoutList = document.getElementById('exerciseList');
+  if (!workoutList) return;
+
+  workoutList.innerHTML = EXERCISES.map((e, i) => `
+    <div class="exercise-row" data-index="${i}" role="button" tabindex="0" aria-label="Toggle exercise ${i + 1} ${e.name}">
+      <div class="ex-num">${i + 1}</div>
+      <div class="ex-body"><h5>${e.name}</h5><p>${e.detail}</p></div>
+      <div class="ex-check ${e.done ? 'done' : ''}">${e.done ? '✓' : ''}</div>
+      <button type="button" class="btn btn-ghost" data-edit-exercise="${i}" style="padding:6px 10px;font-size:11px;border-radius:8px;min-width:auto;">Edit</button>
+    </div>
+  `).join('');
+
+  workoutList.querySelectorAll('.exercise-row').forEach((row) => {
+    const index = Number(row.dataset.index);
+    const toggleExercise = async () => {
+      try {
+        const updated = await api(`/member/me/exercises/${index}`, { method: 'PATCH' });
+        EXERCISES.splice(0, EXERCISES.length, ...updated);
+        renderWorkoutSection();
+      } catch (error) {
+        console.error('Could not toggle workout item', error);
+      }
+    };
+
+    row.onclick = (event) => {
+      if (event.target.closest('[data-edit-exercise]')) return;
+      toggleExercise();
+    };
+    row.ondblclick = (event) => {
+      if (event.target.closest('[data-edit-exercise]')) return;
+      const current = EXERCISES[index] || {};
+      const newName = window.prompt('Edit exercise name', current.name || '');
+      if (newName === null) return;
+      const newDetail = window.prompt('Edit exercise details', current.detail || '');
+      if (newDetail === null) return;
+      EXERCISES[index] = { ...current, name: newName.trim() || current.name, detail: newDetail.trim() || current.detail };
+      saveWorkoutState();
+    };
+    row.onkeydown = (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleExercise();
+      }
+    };
+  });
+
+  workoutList.querySelectorAll('[data-edit-exercise]').forEach((button) => {
+    button.onclick = (event) => {
+      event.stopPropagation();
+      const index = Number(button.dataset.editExercise);
+      const current = EXERCISES[index] || {};
+      const newName = window.prompt('Edit exercise name', current.name || '');
+      if (newName === null) return;
+      const newDetail = window.prompt('Edit exercise details', current.detail || '');
+      if (newDetail === null) return;
+      EXERCISES[index] = { ...current, name: newName.trim() || current.name, detail: newDetail.trim() || current.detail };
+      saveWorkoutState();
+    };
+  });
+
+  const completionButton = document.querySelector('#page-workouts .head-actions .btn');
+  if (completionButton) {
+    const total = EXERCISES.length;
+    const done = EXERCISES.filter((exercise) => exercise?.done).length;
+    completionButton.textContent = total > 0 && done === total ? '✓ Workout Complete' : '✓ Mark Workout Complete';
+    completionButton.disabled = total > 0 && done === total;
+    completionButton.onclick = async () => {
+      try {
+        const updated = await api('/member/me/workout/complete', { method: 'PATCH' });
+        if (Array.isArray(updated.exercises)) {
+          EXERCISES.splice(0, EXERCISES.length, ...updated.exercises);
+          renderWorkoutSection();
+        }
+      } catch (error) {
+        console.error('Could not complete workout', error);
+      }
+    };
+  }
+}
+
+function renderWeekPlan() {
+  const weekStrip = document.getElementById('weekStrip');
+  if (!weekStrip) return;
+
+  weekStrip.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">
+    ${WEEK.map((w, index) => `
+      <div class="week-cell" data-index="${index}" style="text-align:center;padding:12px 4px;border-radius:10px;background:${w.done?'var(--gold-glow)':'var(--graphite-light)'};border:1px solid ${w.done?'var(--gold-dim)':'var(--line)'};cursor:pointer;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">${w.d}</div>
+        <div style="font-size:11.5px;font-weight:700;margin-top:6px;color:${w.done?'var(--gold-bright)':'var(--ivory)'};">${w.l}</div>
+      </div>
+    `).join('')}</div>`;
+
+  weekStrip.querySelectorAll('.week-cell').forEach((cell) => {
+    const index = Number(cell.dataset.index);
+    cell.onclick = async () => {
+      const nextWeek = [...WEEK];
+      nextWeek[index] = { ...nextWeek[index], done: !Boolean(nextWeek[index]?.done) };
+      WEEK.splice(0, WEEK.length, ...nextWeek);
+      await saveWorkoutState(EXERCISES, WEEK);
+    };
+    cell.ondblclick = () => {
+      const current = WEEK[index] || {};
+      const nextLabel = window.prompt('Edit workout label', current.l || 'Workout');
+      if (nextLabel === null) return;
+      const nextDay = window.prompt('Edit day label', current.d || 'Mon');
+      if (nextDay === null) return;
+      WEEK[index] = { ...current, d: nextDay.trim() || current.d, l: nextLabel.trim() || current.l };
+      saveWorkoutState(EXERCISES, WEEK);
+    };
+  });
+}
+
+renderWorkoutSection();
+renderWeekPlan();
 
 /* ===== Bookings ===== */
 const BOOKINGS = me.bookings || [];

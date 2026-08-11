@@ -316,14 +316,28 @@ document.getElementById('txnBody').innerHTML = TXNS.map(t=>`
 
 /* ============ TRAINERS GRID ============ */
 let TRAINERS = dashboardSummary.trainers || [];
+function resolveImageSrc(img, fallback = '1519085360753-af0119f7cbe7', width = 200) {
+  if (!img) {
+    return `https://images.unsplash.com/photo-${fallback}?q=80&w=${width}&auto=format&fit=crop`;
+  }
+  if (/^data:image\//i.test(img)) {
+    return img;
+  }
+  if (/^https?:\/\//i.test(img)) {
+    return img;
+  }
+  return `https://images.unsplash.com/photo-${img}?q=80&w=${width}&auto=format&fit=crop`;
+}
 function renderTrainers(list = TRAINERS) {
   document.getElementById('trainerGrid').innerHTML = list.map(t=>`
     <div class="card trainer-card">
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
-        <button type="button" class="btn btn-ghost" style="padding:6px 10px;font-size:11px;" onclick="window.editTrainer('${t._id || t.id}')">Edit</button>
-        <button type="button" class="btn btn-gold" style="padding:6px 10px;font-size:11px;" onclick="window.deleteTrainer('${t._id || t.id}')">Remove</button>
+      <div class="trainer-card-actions">
+        <button type="button" class="btn btn-ghost trainer-action-btn" onclick="window.editTrainer('${t._id || t.id}')">Edit</button>
+        <button type="button" class="btn btn-gold trainer-action-btn" onclick="window.deleteTrainer('${t._id || t.id}')">Remove</button>
       </div>
-      <img src="https://images.unsplash.com/photo-${t.img || '1519085360753-af0119f7cbe7'}?q=80&w=200&auto=format&fit=crop">
+      <div class="trainer-portrait-wrap">
+        <img src="${resolveImageSrc(t.img, '1519085360753-af0119f7cbe7', 200)}" alt="${t.name}">
+      </div>
       <h4>${t.name}</h4>
       <div class="spec">${t.spec}</div>
       <div class="trainer-stats">
@@ -632,12 +646,28 @@ window.refreshDashboard = refreshData;
 window.openAttendanceForm = () => { document.getElementById('attendanceForm').reset(); };
 window.openFeeForm = () => { document.getElementById('feeForm').reset(); };
 window.openPlanForm = () => { document.getElementById('planForm').reset(); };
+function syncTrainerImagePreview(src) {
+  const previewWrap = document.getElementById('trainerImagePreviewWrap');
+  const preview = document.getElementById('trainerImagePreview');
+  if (!previewWrap || !preview) return;
+
+  if (!src) {
+    previewWrap.style.display = 'none';
+    preview.removeAttribute('src');
+    return;
+  }
+
+  preview.src = resolveImageSrc(src, '1519085360753-af0119f7cbe7', 200);
+  previewWrap.style.display = 'block';
+}
+
 window.openTrainerForm = () => {
   const form = document.getElementById('trainerForm');
   if (!form) return;
   form.reset();
   const fileInput = document.getElementById('trainerImageFile');
   if (fileInput) fileInput.value = '';
+  syncTrainerImagePreview('');
 };
 window.openWorkoutForm = () => { document.getElementById('workoutForm').reset(); };
 window.openDietForm = () => { document.getElementById('dietForm').reset(); };
@@ -653,9 +683,15 @@ if (trainerForm) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      imageField.value = String(reader.result || '');
+      const dataUrl = String(reader.result || '');
+      imageField.value = dataUrl;
+      syncTrainerImagePreview(dataUrl);
     };
     reader.readAsDataURL(file);
+  });
+
+  imageField?.addEventListener('input', (event) => {
+    syncTrainerImagePreview(event.target.value || '');
   });
 }
 
@@ -748,7 +784,9 @@ window.editTrainer = async (id) => {
   form.querySelector('[name="clients"]').value = item.clients ?? '';
   form.querySelector('[name="rating"]').value = item.rating ?? '';
   form.querySelector('[name="sessions"]').value = item.sessions ?? '';
-  form.querySelector('[name="img"]').value = item.img || '';
+  const imageField = form.querySelector('[name="img"]');
+  imageField.value = item.img || '';
+  syncTrainerImagePreview(item.img || '');
   switchPage('trainers', 'Trainers', 'trainers');
 };
 
