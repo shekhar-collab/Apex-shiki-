@@ -76,10 +76,15 @@ svg{display:block;}
 .page-head p{color:var(--muted);font-size:14px;margin-top:6px;}
 .head-actions{display:flex;gap:12px;}
 .btn{padding:12px 22px;border-radius:11px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:all .25s ease;border:none;}
+.btn-sm{padding:8px 12px;font-size:12px;font-weight:700;border-radius:10px;}
 .btn-gold{background:var(--gold);color:#141210;}
 .btn-gold:hover{background:var(--gold-bright);transform:translateY(-2px);box-shadow:0 12px 26px -10px rgba(198,161,91,0.5);}
 .btn-ghost{background:var(--graphite);border:1px solid var(--line-strong);color:var(--ivory);}
 .btn-ghost:hover{background:var(--graphite-light);}
+
+.exercise-meta{font-size:12px;color:var(--muted);margin-top:6px;max-width:100%;word-break:break-word;}
+.exercise-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.exercise-actions .btn{padding:8px 12px;border-radius:10px;font-size:12px;}
 
 .card{background:var(--graphite);border:1px solid var(--line);border-radius:var(--radius);transition:border-color .3s,transform .3s;}
 .card:hover{border-color:var(--line-strong);}
@@ -161,11 +166,13 @@ svg{display:block;}
 .ex-check{width:32px;height:32px;border-radius:9px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-shrink:0;}
 .ex-check.done{background:var(--green);border-color:var(--green);color:#0a0a0b;}
 
-.program-mini{border-radius:14px;overflow:hidden;position:relative;height:150px;border:1px solid var(--line);cursor:pointer;transition:transform .3s ease;}
+.program-mini{border-radius:14px;overflow:hidden;position:relative;height:150px;border:1px solid var(--line);cursor:pointer;transition:all .25s ease;}
+.program-mini.selected{border-color:var(--gold-bright);box-shadow:0 0 0 1px rgba(232,205,144,0.45);transform:translateY(-2px);}
 .program-mini:hover{transform:translateY(-4px);}
 .program-mini img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
 .program-mini::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.85));}
 .program-mini span{position:absolute;left:14px;bottom:12px;font-weight:700;font-size:13.5px;z-index:2;}
+.week-cell.selected{box-shadow:0 0 0 2px rgba(232,205,144,0.45);}
 
 /* Tables */
 table{width:100%;border-collapse:collapse;}

@@ -75,6 +75,8 @@ router.patch('/me/workout', async (req, res) => {
   if (Array.isArray(payload.exercises)) {
     member.exercises = payload.exercises.map((exercise, index) => ({
       name: exercise?.name || `Exercise ${index + 1}`,
+      sets: exercise?.sets || '',
+      reps: exercise?.reps || '',
       detail: exercise?.detail || '',
       done: Boolean(exercise?.done),
     }));

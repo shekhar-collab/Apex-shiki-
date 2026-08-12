@@ -211,8 +211,59 @@ document.getElementById('mealList').innerHTML = MEALS.map(m=>`
   <div class="meal-item"><div class="meal-time">${m.time}</div><div class="meal-body"><h5>${m.name}</h5><p>${m.desc}</p></div><div class="meal-cal">${m.cal} kcal</div></div>`).join('');
 
 /* ===== Exercises ===== */
+const PROGRAM_TEMPLATES = {
+  Strength: [
+    { name: 'Barbell Bench Press', sets: '4', reps: '8', detail: '70kg', done: false },
+    { name: 'Incline Dumbbell Press', sets: '3', reps: '10', detail: '24kg', done: false },
+    { name: 'Cable Fly', sets: '3', reps: '12', detail: '', done: false },
+    { name: 'Overhead Shoulder Press', sets: '4', reps: '8', detail: '40kg', done: false },
+    { name: 'Tricep Rope Pushdown', sets: '3', reps: '15', detail: '', done: false },
+  ],
+  HIIT: [
+    { name: 'Jump Squats', sets: '4', reps: '15', detail: 'Bodyweight', done: false },
+    { name: 'Burpees', sets: '4', reps: '12', detail: '', done: false },
+    { name: 'Mountain Climbers', sets: '4', reps: '30 sec', detail: '', done: false },
+    { name: 'Kettlebell Swings', sets: '4', reps: '20', detail: '16kg', done: false },
+    { name: 'Plank Jacks', sets: '4', reps: '30 sec', detail: '', done: false },
+  ],
+  Mobility: [
+    { name: 'World’s Greatest Stretch', sets: '3', reps: '8', detail: 'Per side', done: false },
+    { name: 'Hip Flexor Stretch', sets: '3', reps: '45 sec', detail: 'Each leg', done: false },
+    { name: 'Thoracic Rotation', sets: '3', reps: '12', detail: 'Per side', done: false },
+    { name: 'Band Pull Apart', sets: '4', reps: '15', detail: '', done: false },
+    { name: 'Lunge with Reach', sets: '3', reps: '10', detail: 'Per side', done: false },
+  ],
+};
+
+let selectedProgram = workoutData?.program || 'Strength';
+let selectedDay = 0;
 const EXERCISES = Array.isArray(workoutData?.exercises) && workoutData.exercises.length ? workoutData.exercises : (me.exercises || []);
 const WEEK = Array.isArray(workoutData?.weekPlan) && workoutData.weekPlan.length ? workoutData.weekPlan : (me.weekPlan || []);
+
+function promptForExercise(current = {}) {
+  const name = window.prompt('Exercise name', current.name || '');
+  if (name === null) return null;
+  const sets = window.prompt('Sets', current.sets || '');
+  if (sets === null) return null;
+  const reps = window.prompt('Reps', current.reps || '');
+  if (reps === null) return null;
+  const detail = window.prompt('Notes / weight / details', current.detail || '');
+  if (detail === null) return null;
+  return {
+    name: name.trim() || current.name || 'Exercise',
+    sets: sets.trim(),
+    reps: reps.trim(),
+    detail: detail.trim(),
+    done: Boolean(current.done),
+  };
+}
+
+function renderWorkoutHeader() {
+  const pageTitle = document.querySelector('#page-workouts .page-head h2');
+  const pageSubtitle = document.querySelector('#page-workouts .page-head p');
+  if (pageTitle) pageTitle.textContent = `${selectedProgram} Focus`;
+  if (pageSubtitle) pageSubtitle.textContent = `${WEEK[selectedDay]?.l || 'Today'} · ${selectedProgram} session`;
+}
 
 async function saveWorkoutState(nextExercises = EXERCISES, nextWeekPlan = WEEK) {
   try {
@@ -237,18 +288,60 @@ async function saveWorkoutState(nextExercises = EXERCISES, nextWeekPlan = WEEK) 
   }
 }
 
+function setProgram(programName) {
+  if (!PROGRAM_TEMPLATES[programName]) return;
+  selectedProgram = programName;
+  const programExercises = PROGRAM_TEMPLATES[programName].map((exercise) => ({ ...exercise, done: false }));
+  EXERCISES.splice(0, EXERCISES.length, ...programExercises);
+  renderWorkoutHeader();
+  renderWorkoutSection();
+  setActiveProgramCard();
+}
+
+function setActiveProgramCard() {
+  document.querySelectorAll('.program-mini').forEach((card) => {
+    const label = card.dataset.program;
+    card.classList.toggle('selected', label === selectedProgram);
+  });
+}
+
+function selectDay(index) {
+  selectedDay = index;
+  renderWeekPlan();
+  renderWorkoutHeader();
+}
+
 function renderWorkoutSection() {
+  renderWorkoutHeader();
   const workoutList = document.getElementById('exerciseList');
   if (!workoutList) return;
 
-  workoutList.innerHTML = EXERCISES.map((e, i) => `
-    <div class="exercise-row" data-index="${i}" role="button" tabindex="0" aria-label="Toggle exercise ${i + 1} ${e.name}">
-      <div class="ex-num">${i + 1}</div>
-      <div class="ex-body"><h5>${e.name}</h5><p>${e.detail}</p></div>
-      <div class="ex-check ${e.done ? 'done' : ''}">${e.done ? '✓' : ''}</div>
-      <button type="button" class="btn btn-ghost" data-edit-exercise="${i}" style="padding:6px 10px;font-size:11px;border-radius:8px;min-width:auto;">Edit</button>
-    </div>
-  `).join('');
+  if (!EXERCISES.length) {
+    workoutList.innerHTML = `
+      <div class="placeholder">
+        <div class="icon-lg">💪</div>
+        <h3>Your workout plan is empty</h3>
+        <p>Create a custom exercise list with sets and reps to stay on track.</p>
+      </div>`;
+  } else {
+    workoutList.innerHTML = EXERCISES.map((e, i) => {
+      const detailLine = [
+        e.sets ? `${e.sets} sets` : '',
+        e.reps ? `${e.reps} reps` : '',
+        e.detail || '',
+      ].filter(Boolean).join(' · ');
+      return `
+      <div class="exercise-row" data-index="${i}" role="button" tabindex="0" aria-label="Toggle exercise ${i + 1} ${e.name}">
+        <div class="ex-num">${i + 1}</div>
+        <div class="ex-body"><h5>${e.name}</h5><p class="exercise-meta">${detailLine || 'No details yet'}</p></div>
+        <div class="ex-check ${e.done ? 'done' : ''}">${e.done ? '✓' : ''}</div>
+        <div class="exercise-actions">
+          <button type="button" class="btn btn-ghost btn-sm" data-edit-exercise="${i}">Edit</button>
+          <button type="button" class="btn btn-ghost btn-sm btn-remove-exercise" data-remove-exercise="${i}">Remove</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
 
   workoutList.querySelectorAll('.exercise-row').forEach((row) => {
     const index = Number(row.dataset.index);
@@ -263,17 +356,15 @@ function renderWorkoutSection() {
     };
 
     row.onclick = (event) => {
-      if (event.target.closest('[data-edit-exercise]')) return;
+      if (event.target.closest('[data-edit-exercise]') || event.target.closest('[data-remove-exercise]')) return;
       toggleExercise();
     };
     row.ondblclick = (event) => {
-      if (event.target.closest('[data-edit-exercise]')) return;
+      if (event.target.closest('[data-edit-exercise]') || event.target.closest('[data-remove-exercise]')) return;
       const current = EXERCISES[index] || {};
-      const newName = window.prompt('Edit exercise name', current.name || '');
-      if (newName === null) return;
-      const newDetail = window.prompt('Edit exercise details', current.detail || '');
-      if (newDetail === null) return;
-      EXERCISES[index] = { ...current, name: newName.trim() || current.name, detail: newDetail.trim() || current.detail };
+      const updated = promptForExercise(current);
+      if (!updated) return;
+      EXERCISES[index] = updated;
       saveWorkoutState();
     };
     row.onkeydown = (event) => {
@@ -289,21 +380,42 @@ function renderWorkoutSection() {
       event.stopPropagation();
       const index = Number(button.dataset.editExercise);
       const current = EXERCISES[index] || {};
-      const newName = window.prompt('Edit exercise name', current.name || '');
-      if (newName === null) return;
-      const newDetail = window.prompt('Edit exercise details', current.detail || '');
-      if (newDetail === null) return;
-      EXERCISES[index] = { ...current, name: newName.trim() || current.name, detail: newDetail.trim() || current.detail };
+      const updated = promptForExercise(current);
+      if (!updated) return;
+      EXERCISES[index] = updated;
       saveWorkoutState();
     };
   });
 
-  const completionButton = document.querySelector('#page-workouts .head-actions .btn');
+  workoutList.querySelectorAll('[data-remove-exercise]').forEach((button) => {
+    button.onclick = async (event) => {
+      event.stopPropagation();
+      const index = Number(button.dataset.removeExercise);
+      if (!confirm('Remove this exercise?')) return;
+      EXERCISES.splice(index, 1);
+      await saveWorkoutState(EXERCISES, WEEK);
+    };
+  });
+
+  const addExerciseButton = document.querySelector('#page-workouts .btn-add-exercise');
+  if (addExerciseButton) {
+    addExerciseButton.onclick = async () => {
+      const nextExercise = promptForExercise();
+      if (!nextExercise) return;
+      EXERCISES.push(nextExercise);
+      await saveWorkoutState(EXERCISES, WEEK);
+    };
+  }
+
+  setActiveProgramCard();
+  renderWorkoutHeader();
+
+  const completionButton = document.querySelector('#page-workouts .head-actions .btn-gold');
   if (completionButton) {
     const total = EXERCISES.length;
     const done = EXERCISES.filter((exercise) => exercise?.done).length;
     completionButton.textContent = total > 0 && done === total ? '✓ Workout Complete' : '✓ Mark Workout Complete';
-    completionButton.disabled = total > 0 && done === total;
+    completionButton.disabled = total === 0 || (total > 0 && done === total);
     completionButton.onclick = async () => {
       try {
         const updated = await api('/member/me/workout/complete', { method: 'PATCH' });
@@ -324,7 +436,7 @@ function renderWeekPlan() {
 
   weekStrip.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">
     ${WEEK.map((w, index) => `
-      <div class="week-cell" data-index="${index}" style="text-align:center;padding:12px 4px;border-radius:10px;background:${w.done?'var(--gold-glow)':'var(--graphite-light)'};border:1px solid ${w.done?'var(--gold-dim)':'var(--line)'};cursor:pointer;">
+      <div class="week-cell${index === selectedDay ? ' selected' : ''}" data-index="${index}" style="text-align:center;padding:12px 4px;border-radius:10px;background:${w.done?'var(--gold-glow)':'var(--graphite-light)'};border:1px solid ${index === selectedDay ? 'var(--gold-bright)' : (w.done?'var(--gold-dim)':'var(--line)')};cursor:pointer;">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;">${w.d}</div>
         <div style="font-size:11.5px;font-weight:700;margin-top:6px;color:${w.done?'var(--gold-bright)':'var(--ivory)'};">${w.l}</div>
       </div>
@@ -332,7 +444,11 @@ function renderWeekPlan() {
 
   weekStrip.querySelectorAll('.week-cell').forEach((cell) => {
     const index = Number(cell.dataset.index);
-    cell.onclick = async () => {
+    cell.onclick = () => {
+      selectDay(index);
+    };
+    cell.oncontextmenu = async (event) => {
+      event.preventDefault();
       const nextWeek = [...WEEK];
       nextWeek[index] = { ...nextWeek[index], done: !Boolean(nextWeek[index]?.done) };
       WEEK.splice(0, WEEK.length, ...nextWeek);
@@ -350,8 +466,17 @@ function renderWeekPlan() {
   });
 }
 
+function initProgramSelection() {
+  document.querySelectorAll('.program-mini').forEach((card) => {
+    const program = card.dataset.program;
+    card.onclick = () => setProgram(program);
+  });
+  setActiveProgramCard();
+}
+
 renderWorkoutSection();
 renderWeekPlan();
+initProgramSelection();
 
 /* ===== Bookings ===== */
 const BOOKINGS = me.bookings || [];
