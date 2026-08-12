@@ -24,6 +24,7 @@ router.patch('/me', async (req, res) => {
   const updates = {};
   if (typeof payload.name === 'string' && payload.name.trim()) updates.name = payload.name.trim();
   if (typeof payload.phone === 'string') updates.phone = payload.phone.trim();
+  if (typeof payload.img === 'string') updates.img = payload.img.trim();
   if (typeof payload.preferences === 'object' && payload.preferences !== null) {
     member.preferences = {
       workoutReminders: Boolean(payload.preferences.workoutReminders),

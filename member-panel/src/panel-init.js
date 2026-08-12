@@ -50,6 +50,7 @@ export async function initMemberPanel(token, apiBase) {
     name: me.name || '',
     email: me.email || '',
     phone: me.phone || '',
+    img: me.img || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
     password: '',
     preferences: {
       workoutReminders: Boolean(me.preferences?.workoutReminders),
@@ -137,6 +138,18 @@ function heatCells(n, active){
 }
 document.getElementById('dashHeat').innerHTML = heatCells(14,10);
 document.getElementById('fullHeat').innerHTML = heatCells(21,16);
+
+const streakState = me.streak && typeof me.streak === 'object' ? me.streak : { current: 28, longest: 52, last: 'Today', tier: 'gold' };
+const streakProgress = Math.min(100, Math.max(10, ((Number(streakState.current) || 0) / 50) * 100));
+const streakTierText = (String(streakState.tier || 'gold')).charAt(0).toUpperCase() + String(streakState.tier || 'gold').slice(1);
+
+document.getElementById('streakTitle').textContent = `🔥 ${Number(streakState.current || 0)}-Day Streak`;
+document.getElementById('streakSub').textContent = `Longest ever: ${Number(streakState.longest || 0)} days`;
+document.getElementById('streakTier').textContent = `🏆 ${streakTierText} Tier`;
+document.getElementById('currentStreakValue').textContent = `${Number(streakState.current || 0)}d`;
+document.getElementById('bestStreakValue').textContent = `${Number(streakState.longest || 0)}d`;
+document.getElementById('tierValue').textContent = streakTierText;
+document.getElementById('streakProgressBar').style.width = `${streakProgress}%`;
 
 const memberNameEl = document.querySelector('.admin-chip .name');
 if (memberNameEl) memberNameEl.textContent = me.name || 'Member';
@@ -492,6 +505,16 @@ function updateSettingsDisplay() {
   };
 
   const statusText = (pref) => (SETTINGS.preferences[pref] ? 'Enabled' : 'Disabled');
+  const photoSrc = SETTINGS.img || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop';
+
+  const settingPhoto = document.getElementById('settingPhotoPreview');
+  if (settingPhoto) settingPhoto.src = photoSrc;
+
+  const topbarAvatar = document.querySelector('.admin-chip img');
+  if (topbarAvatar) topbarAvatar.src = photoSrc;
+
+  const sidebarAvatar = document.querySelector('.user-mini img');
+  if (sidebarAvatar) sidebarAvatar.src = photoSrc;
 
   document.getElementById('settingName').textContent = SETTINGS.name || 'Not set';
   document.getElementById('settingEmail').textContent = SETTINGS.email || 'Not set';
@@ -542,6 +565,21 @@ function initSettings() {
     }
   });
 
+  document.getElementById('changePhoto')?.addEventListener('click', () => {
+    document.getElementById('photoInput')?.click();
+  });
+
+  document.getElementById('photoInput')?.addEventListener('change', (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      SETTINGS.img = String(reader.result || '');
+      updateSettingsDisplay();
+    };
+    reader.readAsDataURL(file);
+  });
+
   document.getElementById('changePassword')?.addEventListener('click', () => {
     const newPassword = promptForSetting('password', '', { prompt: 'Enter new password (min 8 chars)' });
     if (newPassword === null) return;
@@ -571,6 +609,7 @@ function initSettings() {
       name: SETTINGS.name,
       email: SETTINGS.email,
       phone: SETTINGS.phone,
+      img: SETTINGS.img,
       preferences: SETTINGS.preferences,
     };
     if (SETTINGS.password) payload.password = SETTINGS.password;
@@ -582,6 +621,7 @@ function initSettings() {
         SETTINGS.name = saved.name || SETTINGS.name;
         SETTINGS.email = saved.email || SETTINGS.email;
         SETTINGS.phone = saved.phone || SETTINGS.phone;
+        SETTINGS.img = saved.img || SETTINGS.img;
         SETTINGS.preferences = {
           workoutReminders: Boolean(saved.preferences?.workoutReminders),
           streakAlerts: Boolean(saved.preferences?.streakAlerts),
@@ -725,8 +765,12 @@ document.getElementById('paymentBody').innerHTML = PAYMENTS.map(p=>`
 
 /* ===== Rewards ===== */
 const MY_REWARDS = me.rewards || [];
-document.getElementById('myRewards').innerHTML = MY_REWARDS.map(r=>`
-  <div class="notif-item"><div class="notif-ico">🎁</div><div class="notif-body"><h5>${r.name}</h5><p>From ${r.from}</p></div><div class="notif-time">${r.time}</div></div>`).join('');
+document.getElementById('myRewards').innerHTML = (MY_REWARDS.length ? MY_REWARDS : [{ name: 'Consistency Badge', from: 'Apex Team', time: '2h ago' }]).map((r, index)=>`
+  <div class="reward-card ${index === 0 ? 'featured' : ''}">
+    <div class="reward-icon">${index === 0 ? '🏆' : '🎁'}</div>
+    <div class="reward-body"><h5>${r.name}</h5><p>From ${r.from}</p></div>
+    <div class="reward-meta"><span>${r.time}</span><small>Unlocked</small></div>
+  </div>`).join('');
 
 /* ===== Notifications ===== */
 const NOTIFS = me.notifications || [];
