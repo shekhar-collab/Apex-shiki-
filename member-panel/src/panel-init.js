@@ -46,17 +46,28 @@ export async function initMemberPanel(token, apiBase) {
   const membershipPlan = Array.isArray(planData) ? planData.find((plan) => (plan.name || '').toLowerCase() === String(me.plan || '').toLowerCase()) || planData[0] : null;
   const selectedTrainer = Array.isArray(trainerData) ? trainerData[0] : null;
 
+  const SETTINGS = {
+    name: me.name || '',
+    email: me.email || '',
+    phone: me.phone || '',
+    password: '',
+    preferences: {
+      workoutReminders: Boolean(me.preferences?.workoutReminders),
+      streakAlerts: Boolean(me.preferences?.streakAlerts),
+      dietReminders: Boolean(me.preferences?.dietReminders),
+      marketingEmails: Boolean(me.preferences?.marketingEmails),
+    },
+  };
+
 const ICON = {
   dashboard:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   workouts:'<polyline points="3 12 8 12 10 6 14 18 16 12 21 12"/>',
   diet:'<path d="M12 2a10 10 0 1 0 0.01 0z"/><path d="M12 2v10l7 5"/>',
   progress:'<polyline points="3 17 10 10 14 14 21 7"/><polyline points="21 14 21 7 14 7"/>',
   streak:'<path d="M12 2c1 3-2 4.5-2 7.5a2 2 0 0 0 4 0c0-1 .5-1.5 1-2 1 2 2 4 2 6.5a5 5 0 0 1-10 0c0-4 2-5.5 3-8 .5-1.3.8-2.6 2-4z"/>',
-  achievements:'<polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 17 5.5 21 7.5 13.5 2 9 9 9"/>',
   bookings:'<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>',
   schedule:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/>',
   membership:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
-  store:'<path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
   notifications:'<path d="M6 10a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 0 0 4 0"/>',
   settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'
 };
@@ -71,7 +82,6 @@ const NAV = [
   ]},
   {label:'Streak & Rewards', items:[
     {id:'streak', label:'Streak & Rewards', icon:'streak', badge:'🔥'},
-    {id:'achievements', label:'Achievements', icon:'achievements'},
   ]},
   {label:'Schedule', items:[
     {id:'bookings', label:'My Bookings', icon:'bookings'},
@@ -79,7 +89,6 @@ const NAV = [
   ]},
   {label:'Account', items:[
     {id:'membership', label:'Membership & Billing', icon:'membership'},
-    {id:'store', label:'Supplement Orders', icon:'store'},
     {id:'notifications', label:'Notifications', icon:'notifications', badge:'5'},
     {id:'settings', label:'Settings', icon:'settings'},
   ]},
@@ -474,17 +483,232 @@ function initProgramSelection() {
   setActiveProgramCard();
 }
 
+function updateSettingsDisplay() {
+  const labels = {
+    workoutReminders: 'Daily push notification',
+    streakAlerts: 'Warn before streak breaks',
+    dietReminders: 'Meal logging nudges',
+    marketingEmails: 'Offers and gym news',
+  };
+
+  const statusText = (pref) => (SETTINGS.preferences[pref] ? 'Enabled' : 'Disabled');
+
+  document.getElementById('settingName').textContent = SETTINGS.name || 'Not set';
+  document.getElementById('settingEmail').textContent = SETTINGS.email || 'Not set';
+  document.getElementById('settingPhone').textContent = SETTINGS.phone || 'Not set';
+  document.getElementById('settingPasswordInfo').textContent = SETTINGS.password ? 'Password will be updated on save' : 'Last changed 3 months ago';
+
+  Object.keys(SETTINGS.preferences).forEach((pref) => {
+    const elem = document.getElementById(`pref${pref.charAt(0).toUpperCase() + pref.slice(1)}`);
+    if (elem) elem.textContent = `${labels[pref]} · ${statusText(pref)}`;
+    const toggle = document.querySelector(`.toggle[data-pref="${pref}"]`);
+    if (toggle) toggle.classList.toggle('on', Boolean(SETTINGS.preferences[pref]));
+  });
+}
+
+function promptForSetting(field, currentValue, options = {}) {
+  const promptText = options.prompt || `Update ${field}`;
+  const result = window.prompt(promptText, currentValue || '');
+  if (result === null) return null;
+  return result.trim();
+}
+
+function renderSettings() {
+  updateSettingsDisplay();
+}
+
+function initSettings() {
+  document.getElementById('editName')?.addEventListener('click', () => {
+    const newValue = promptForSetting('name', SETTINGS.name, { prompt: 'Enter your name' });
+    if (newValue !== null && newValue) {
+      SETTINGS.name = newValue;
+      updateSettingsDisplay();
+    }
+  });
+
+  document.getElementById('editEmail')?.addEventListener('click', () => {
+    const newValue = promptForSetting('email', SETTINGS.email, { prompt: 'Enter your email' });
+    if (newValue !== null && newValue) {
+      SETTINGS.email = newValue;
+      updateSettingsDisplay();
+    }
+  });
+
+  document.getElementById('editPhone')?.addEventListener('click', () => {
+    const newValue = promptForSetting('phone', SETTINGS.phone, { prompt: 'Enter your phone number' });
+    if (newValue !== null) {
+      SETTINGS.phone = newValue;
+      updateSettingsDisplay();
+    }
+  });
+
+  document.getElementById('changePassword')?.addEventListener('click', () => {
+    const newPassword = promptForSetting('password', '', { prompt: 'Enter new password (min 8 chars)' });
+    if (newPassword === null) return;
+    if (newPassword.length < 8) {
+      return alert('Password must be at least 8 characters long.');
+    }
+    const confirmPassword = promptForSetting('confirm password', '', { prompt: 'Confirm new password' });
+    if (confirmPassword === null) return;
+    if (newPassword !== confirmPassword) {
+      return alert('Passwords do not match.');
+    }
+    SETTINGS.password = newPassword;
+    updateSettingsDisplay();
+  });
+
+  document.querySelectorAll('.toggle').forEach((toggle) => {
+    const pref = toggle.dataset.pref;
+    if (!pref) return;
+    toggle.onclick = () => {
+      SETTINGS.preferences[pref] = !SETTINGS.preferences[pref];
+      updateSettingsDisplay();
+    };
+  });
+
+  document.getElementById('saveSettings')?.addEventListener('click', async () => {
+    const payload = {
+      name: SETTINGS.name,
+      email: SETTINGS.email,
+      phone: SETTINGS.phone,
+      preferences: SETTINGS.preferences,
+    };
+    if (SETTINGS.password) payload.password = SETTINGS.password;
+
+    try {
+      const saved = await api('/member/me', { method: 'PATCH', body: payload });
+      if (saved) {
+        SETTINGS.password = '';
+        SETTINGS.name = saved.name || SETTINGS.name;
+        SETTINGS.email = saved.email || SETTINGS.email;
+        SETTINGS.phone = saved.phone || SETTINGS.phone;
+        SETTINGS.preferences = {
+          workoutReminders: Boolean(saved.preferences?.workoutReminders),
+          streakAlerts: Boolean(saved.preferences?.streakAlerts),
+          dietReminders: Boolean(saved.preferences?.dietReminders),
+          marketingEmails: Boolean(saved.preferences?.marketingEmails),
+        };
+        updateSettingsDisplay();
+        const memberNameEl = document.querySelector('.admin-chip .name');
+        if (memberNameEl) memberNameEl.textContent = saved.name || memberNameEl.textContent;
+        alert('Settings saved successfully.');
+      }
+    } catch (error) {
+      console.error('Could not save settings', error);
+      alert(error.message || 'Failed to save settings.');
+    }
+  });
+}
+
 renderWorkoutSection();
 renderWeekPlan();
 initProgramSelection();
+renderSettings();
+initSettings();
 
 /* ===== Bookings ===== */
-const BOOKINGS = me.bookings || [];
-function bookingHTML(b){
-  return `<div class="booking-item"><div class="booking-date"><div class="d">${b.d}</div><div class="m">${b.m}</div></div><div class="booking-body"><h5>${b.name}</h5><p>${b.time}</p></div><div class="booking-actions"><span>Reschedule</span><span>Cancel</span></div></div>`;
+const BOOKINGS = Array.isArray(me.bookings) ? me.bookings : [];
+
+function bookingHTML(b, index) {
+  return `<div class="booking-item" data-booking-index="${index}"><div class="booking-date"><div class="d">${b.d}</div><div class="m">${b.m}</div></div><div class="booking-body"><h5>${b.name}</h5><p>${b.time}</p></div><div class="booking-actions"><span class="booking-action" data-action="reschedule" data-index="${index}">Reschedule</span><span class="booking-action" data-action="cancel" data-index="${index}">Cancel</span></div></div>`;
 }
-document.getElementById('dashBookings').innerHTML = BOOKINGS.slice(0,2).map(bookingHTML).join('');
-document.getElementById('bookingsFull').innerHTML = BOOKINGS.map(bookingHTML).join('');
+
+function renderBookings() {
+  document.getElementById('dashBookings').innerHTML = BOOKINGS.slice(0, 2).map(bookingHTML).join('');
+  document.getElementById('bookingsFull').innerHTML = BOOKINGS.map(bookingHTML).join('');
+  attachBookingListeners();
+}
+
+function attachBookingListeners() {
+  document.querySelectorAll('.booking-action').forEach((button) => {
+    button.onclick = async (event) => {
+      const index = Number(button.dataset.index);
+      const action = button.dataset.action;
+      if (action === 'cancel') {
+        if (!confirm('Cancel this booking?')) return;
+        await cancelBooking(index);
+      }
+      if (action === 'reschedule') {
+        await rescheduleBooking(index);
+      }
+    };
+  });
+}
+
+async function createBooking() {
+  const d = window.prompt('Booking day (e.g. 11)', '');
+  if (d === null) return;
+  const m = window.prompt('Booking month (e.g. Jul)', '');
+  if (m === null) return;
+  const name = window.prompt('Session name or coach', 'Personal Training');
+  if (name === null) return;
+  const time = window.prompt('Time slot (e.g. 6:30 PM – 7:15 PM)', '');
+  if (time === null) return;
+  const booking = { d: d.trim(), m: m.trim(), name: name.trim(), time: time.trim() };
+  if (!booking.d || !booking.m || !booking.name || !booking.time) {
+    return alert('Please provide all booking details.');
+  }
+
+  try {
+    const saved = await api('/member/me/bookings', {
+      method: 'POST',
+      body: booking,
+    });
+    if (Array.isArray(saved)) {
+      BOOKINGS.splice(0, BOOKINGS.length, ...saved);
+      renderBookings();
+    }
+  } catch (error) {
+    console.error('Could not create booking', error);
+    alert('Failed to create booking.');
+  }
+}
+
+async function cancelBooking(index) {
+  try {
+    const updated = await api(`/member/me/bookings/${index}`, { method: 'DELETE' });
+    if (Array.isArray(updated)) {
+      BOOKINGS.splice(0, BOOKINGS.length, ...updated);
+      renderBookings();
+    }
+  } catch (error) {
+    console.error('Could not cancel booking', error);
+    alert('Failed to cancel booking.');
+  }
+}
+
+async function rescheduleBooking(index) {
+  const current = BOOKINGS[index] || {};
+  const d = window.prompt('Booking day (e.g. 11)', current.d || '');
+  if (d === null) return;
+  const m = window.prompt('Booking month (e.g. Jul)', current.m || '');
+  if (m === null) return;
+  const name = window.prompt('Session name or coach', current.name || '');
+  if (name === null) return;
+  const time = window.prompt('Time slot (e.g. 6:30 PM – 7:15 PM)', current.time || '');
+  if (time === null) return;
+  const booking = { d: d.trim(), m: m.trim(), name: name.trim(), time: time.trim() };
+  if (!booking.d || !booking.m || !booking.name || !booking.time) {
+    return alert('Please provide all booking details.');
+  }
+
+  try {
+    const updated = await api(`/member/me/bookings/${index}`, {
+      method: 'PATCH',
+      body: booking,
+    });
+    if (Array.isArray(updated)) {
+      BOOKINGS.splice(0, BOOKINGS.length, ...updated);
+      renderBookings();
+    }
+  } catch (error) {
+    console.error('Could not reschedule booking', error);
+    alert('Failed to reschedule booking.');
+  }
+}
+
+document.querySelector('#page-bookings .head-actions .btn-gold')?.addEventListener('click', createBooking);
+renderBookings();
 
 const BOOK_TRAINERS = await api('/api/contact/trainers-public');
 document.getElementById('trainerBookGrid').innerHTML = BOOK_TRAINERS.map(t=>`
@@ -499,14 +723,10 @@ const PAYMENTS = me.payments || [];
 document.getElementById('paymentBody').innerHTML = PAYMENTS.map(p=>`
   <tr><td>${p.date}</td><td>${p.desc}</td><td>${p.amt}</td><td><span class="badge ${p.status}">Paid</span></td></tr>`).join('');
 
-/* ===== Rewards & Achievements ===== */
+/* ===== Rewards ===== */
 const MY_REWARDS = me.rewards || [];
 document.getElementById('myRewards').innerHTML = MY_REWARDS.map(r=>`
   <div class="notif-item"><div class="notif-ico">🎁</div><div class="notif-body"><h5>${r.name}</h5><p>From ${r.from}</p></div><div class="notif-time">${r.time}</div></div>`).join('');
-
-const ACHIEVEMENTS = me.achievements || [];
-document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a=>`
-  <div class="card ach-card ${a.locked?'locked':''}"><div class="ico">${a.ico}</div><h5>${a.name}</h5><p>${a.desc}</p></div>`).join('');
 
 /* ===== Notifications ===== */
 const NOTIFS = me.notifications || [];

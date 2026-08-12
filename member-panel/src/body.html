@@ -33,11 +33,6 @@
 <section class="page active" id="page-dashboard">
 <div class="breadcrumb">My Panel / <span>Dashboard</span></div>
 <div class="page-head"><div><h2>Welcome back, Ishaan 👋</h2><p>Tuesday, July 8, 2026 · Let's keep the streak alive today.</p></div></div>
-<div class="reward-banner">
-<div class="rb-ico">🎁</div>
-<div><h4>You've earned: Free Supplement Pack</h4><p>Gifted by the Apex team — "Amazing consistency this month, keep crushing it!"</p></div>
-<button class="btn btn-gold">Claim Reward</button>
-</div>
 <div class="hero-grid">
 <div class="card streak-hero">
 <div class="flame-big">🔥</div>
@@ -134,8 +129,6 @@
 </div>
 </div>
 <div class="card panel">
-<div class="panel-head"><div><h3>Achievements</h3><div class="sub">Badges you've unlocked along the way</div></div></div>
-<div class="ach-grid" id="achGrid"></div>
 </div>
 </section>
 <!-- ================= BOOKINGS ================= -->
@@ -218,21 +211,21 @@
 <!-- ================= SETTINGS ================= -->
 <section class="page" id="page-settings">
 <div class="breadcrumb">My Panel / <span>Settings</span></div>
-<div class="page-head"><div><h2>Settings</h2><p>Manage your profile and preferences</p></div><div class="head-actions"><button class="btn btn-gold">Save Changes</button></div></div>
+<div class="page-head"><div><h2>Settings</h2><p>Manage your profile and preferences</p></div><div class="head-actions"><button class="btn btn-gold" id="saveSettings">Save Changes</button></div></div>
 <div class="settings-grid">
 <div class="card panel">
 <h3 style="font-family:var(--serif);font-size:16px;margin-bottom:6px;">Profile</h3>
-<div class="setting-row"><div><h5>Name</h5><p>Ishaan Verma</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
-<div class="setting-row"><div><h5>Email</h5><p>ishaan.v@mail.com</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
-<div class="setting-row"><div><h5>Phone</h5><p>+91 98765 43210</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Edit</button></div>
-<div class="setting-row"><div><h5>Password</h5><p>Last changed 3 months ago</p></div><button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">Change</button></div>
+<div class="setting-row"><div><h5>Name</h5><p id="settingName"></p></div><button class="btn btn-ghost btn-sm" id="editName">Edit</button></div>
+<div class="setting-row"><div><h5>Email</h5><p id="settingEmail"></p></div><button class="btn btn-ghost btn-sm" id="editEmail">Edit</button></div>
+<div class="setting-row"><div><h5>Phone</h5><p id="settingPhone"></p></div><button class="btn btn-ghost btn-sm" id="editPhone">Edit</button></div>
+<div class="setting-row"><div><h5>Password</h5><p id="settingPasswordInfo">Last changed 3 months ago</p></div><button class="btn btn-ghost btn-sm" id="changePassword">Change</button></div>
 </div>
 <div class="card panel">
 <h3 style="font-family:var(--serif);font-size:16px;margin-bottom:6px;">Preferences</h3>
-<div class="setting-row"><div><h5>Workout Reminders</h5><p>Daily push notification</p></div><div class="toggle on"></div></div>
-<div class="setting-row"><div><h5>Streak Alerts</h5><p>Warn before streak breaks</p></div><div class="toggle on"></div></div>
-<div class="setting-row"><div><h5>Diet Reminders</h5><p>Meal logging nudges</p></div><div class="toggle"></div></div>
-<div class="setting-row"><div><h5>Marketing Emails</h5><p>Offers and gym news</p></div><div class="toggle"></div></div>
+<div class="setting-row"><div><h5>Workout Reminders</h5><p id="prefWorkoutReminders"></p></div><div class="toggle" data-pref="workoutReminders"></div></div>
+<div class="setting-row"><div><h5>Streak Alerts</h5><p id="prefStreakAlerts"></p></div><div class="toggle" data-pref="streakAlerts"></div></div>
+<div class="setting-row"><div><h5>Diet Reminders</h5><p id="prefDietReminders"></p></div><div class="toggle" data-pref="dietReminders"></div></div>
+<div class="setting-row"><div><h5>Marketing Emails</h5><p id="prefMarketingEmails"></p></div><div class="toggle" data-pref="marketingEmails"></div></div>
 </div>
 </div>
 </section>

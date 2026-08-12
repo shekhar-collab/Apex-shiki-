@@ -112,7 +112,7 @@ async function startServer() {
 async function bootstrap() {
   try {
     await sequelize.authenticate();
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
 
     // ensure an admin user exists for first-time login
     try {

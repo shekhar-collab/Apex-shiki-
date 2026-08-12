@@ -17,12 +17,38 @@ router.get('/me', async (req, res) => {
 });
 
 router.patch('/me', async (req, res) => {
-  const updates = { ...req.body };
-  delete updates.passwordHash;
-  delete updates.email;
-  await Member.update(updates, { where: { id: req.user.id } });
-  const member = await Member.findByPk(req.user.id, { attributes: { exclude: ['passwordHash'] } });
-  res.json(member);
+  const payload = req.body || {};
+  const member = await Member.findByPk(req.user.id);
+  if (!member) return res.status(404).json({ message: 'Member not found' });
+
+  const updates = {};
+  if (typeof payload.name === 'string' && payload.name.trim()) updates.name = payload.name.trim();
+  if (typeof payload.phone === 'string') updates.phone = payload.phone.trim();
+  if (typeof payload.preferences === 'object' && payload.preferences !== null) {
+    member.preferences = {
+      workoutReminders: Boolean(payload.preferences.workoutReminders),
+      streakAlerts: Boolean(payload.preferences.streakAlerts),
+      dietReminders: Boolean(payload.preferences.dietReminders),
+      marketingEmails: Boolean(payload.preferences.marketingEmails),
+      ...member.preferences,
+    };
+  }
+
+  if (payload.password) {
+    const bcrypt = require('bcryptjs');
+    if (typeof payload.password !== 'string' || payload.password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+    }
+    member.passwordHash = await bcrypt.hash(payload.password, 10);
+  }
+
+  if (Object.keys(updates).length) {
+    await Member.update(updates, { where: { id: req.user.id } });
+  }
+  await member.save();
+
+  const updatedMember = await Member.findByPk(req.user.id, { attributes: { exclude: ['passwordHash'] } });
+  res.json(updatedMember);
 });
 
 router.post('/me/bookings', async (req, res) => {
@@ -33,6 +59,26 @@ router.post('/me/bookings', async (req, res) => {
   member.bookings = [...existing, { d, m, name, time }];
   await member.save();
   res.status(201).json(member.bookings);
+});
+
+router.patch('/me/bookings/:index', async (req, res) => {
+  const member = await Member.findByPk(req.user.id);
+  if (!member) return res.status(404).json({ message: 'Member not found' });
+  const idx = parseInt(req.params.index, 10);
+  const { d, m, name, time } = req.body;
+  const existing = Array.isArray(member.bookings) ? member.bookings : [];
+  if (Number.isNaN(idx) || idx < 0 || idx >= existing.length) {
+    return res.status(400).json({ message: 'Invalid booking index' });
+  }
+  existing[idx] = {
+    d: d || existing[idx].d,
+    m: m || existing[idx].m,
+    name: name || existing[idx].name,
+    time: time || existing[idx].time,
+  };
+  member.bookings = existing;
+  await member.save();
+  res.json(member.bookings);
 });
 
 router.delete('/me/bookings/:index', async (req, res) => {

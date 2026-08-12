@@ -17,6 +17,8 @@ const Member = sequelize.define(
     img: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     plan: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Essential' },
     trainer: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    phone: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+    preferences: { type: DataTypes.JSON, allowNull: false, defaultValue: {} },
     join: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     expiry: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
     att: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
