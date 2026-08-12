@@ -38,6 +38,31 @@ function isEmail(s) {
   return typeof s === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
 }
 
+async function syncFeeStatuses() {
+  const today = new Date();
+  const todayStr = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().slice(0, 10);
+
+  await FeeRecord.update(
+    { status: 'Paid' },
+    { where: { paidDate: { [Op.ne]: '' }, status: { [Op.ne]: 'Paid' } } },
+  );
+
+  await FeeRecord.update(
+    { status: 'Pending' },
+    { where: { status: 'Overdue', dueDate: { [Op.gte]: todayStr } } },
+  );
+
+  await FeeRecord.update(
+    { status: 'Overdue' },
+    {
+      where: {
+        status: { [Op.notIn]: ['Paid', 'Overdue'] },
+        dueDate: { [Op.lt]: todayStr },
+      },
+    },
+  );
+}
+
 /* ------------------------------ KPIs ------------------------------ */
 router.get('/kpis', async (req, res) => {
   try {
@@ -50,6 +75,7 @@ router.get('/kpis', async (req, res) => {
 
 router.get('/dashboard-summary', async (req, res) => {
   try {
+    await syncFeeStatuses();
     const [recentMembers, recentTrainers, recentFees, recentAttendance, recentTransactions, recentNotifications] = await Promise.all([
       Member.findAll({ attributes: { exclude: ['passwordHash'] }, order: [['createdAt', 'DESC']], limit: 8 }),
       Trainer.findAll({ order: [['createdAt', 'DESC']], limit: 6 }),
@@ -349,6 +375,7 @@ router.delete('/plans/:id', async (req, res) => {
 /* --------------------------- Fee Management --------------------------- */
 router.get('/fees', async (req, res) => {
   try {
+    await syncFeeStatuses();
     const { search = '', status = '' } = req.query;
     const { page, limit, skip } = parsePagination(req);
     const where = {};
@@ -369,6 +396,7 @@ router.get('/fees', async (req, res) => {
 
 router.get('/pending-fees', async (req, res) => {
   try {
+    await syncFeeStatuses();
     const { page, limit, skip } = parsePagination(req);
     const where = { status: { [Op.ne]: 'Paid' } };
     const total = await FeeRecord.count({ where });

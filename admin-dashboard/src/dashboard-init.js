@@ -146,6 +146,18 @@ NAV.forEach(group=>{
 });
 navContainer.querySelector('.nav-item').classList.add('active');
 
+let feePageAutoRefreshTimer = null;
+function setFeePageAutoRefresh(enabled) {
+  if (enabled) {
+    if (feePageAutoRefreshTimer) return;
+    feePageAutoRefreshTimer = setInterval(() => refreshData().catch(() => {}), 30000);
+  } else {
+    if (!feePageAutoRefreshTimer) return;
+    clearInterval(feePageAutoRefreshTimer);
+    feePageAutoRefreshTimer = null;
+  }
+}
+
 function switchPage(id, label, icon){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const target = document.querySelector('.nav-item[data-page="'+id+'"]');
@@ -155,12 +167,19 @@ function switchPage(id, label, icon){
   if(FULL_PAGES.includes(id)){
     document.getElementById('page-'+id).classList.add('active');
     document.getElementById('pageTitle').textContent = label || (id.charAt(0).toUpperCase()+id.slice(1));
+    if (id === 'fees') {
+      refreshData().catch(() => {});
+      setFeePageAutoRefresh(true);
+    } else {
+      setFeePageAutoRefresh(false);
+    }
   } else {
     document.getElementById('page-placeholder').classList.add('active');
     document.getElementById('placeholderCrumb').textContent = label;
     document.getElementById('placeholderTitle').textContent = label;
     document.getElementById('placeholderIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICON[icon]+'</svg>';
     document.getElementById('pageTitle').textContent = label;
+    setFeePageAutoRefresh(false);
   }
 }
 
@@ -287,7 +306,7 @@ const allMembers = normalizeList(membersPayload);
 function feeLabel(f){return f==='green'?'Paid':f==='red'?'Overdue':'Partial';}
 document.getElementById('recentMembersBody').innerHTML = (dashboardSummary.recentMembers || []).slice(0,5).map(m=>`
   <tr>
-    <td><div class="member-cell"><img src="https://images.unsplash.com/photo-${m.img}?q=80&w=100&auto=format&fit=crop"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
+    <td><div class="member-cell"><img src="${resolveImageSrc(m.img, '1519085360753-af0119f7cbe7', 100)}"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
     <td><span class="badge gold">${m.plan}</span></td>
     <td>${m.trainer}</td>
     <td><span class="badge ${m.fee}">${feeLabel(m.fee)}</span></td>
@@ -296,7 +315,7 @@ document.getElementById('recentMembersBody').innerHTML = (dashboardSummary.recen
 function renderMembers(list = allMembers) {
   document.getElementById('membersBody').innerHTML = list.map(m=>`
     <tr>
-      <td><div class="member-cell"><img src="https://images.unsplash.com/photo-${m.img}?q=80&w=100&auto=format&fit=crop"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
+      <td><div class="member-cell"><img src="${resolveImageSrc(m.img, '1519085360753-af0119f7cbe7', 100)}"><div><div class="n">${m.name}</div><div class="e">${m.email}</div></div></div></td>
       <td><span class="badge gold">${m.plan}</span></td>
       <td>${m.trainer || 'Unassigned'}</td>
       <td>${m.join || '—'}</td>
@@ -351,18 +370,6 @@ function renderTrainers(list = TRAINERS) {
 }
 renderTrainers(TRAINERS);
 
-/* ============ NOTIFICATIONS ============ */
-const NOTIFS = dashboardSummary.notifications || [];
-function notifHTML(n){
-  return `<div class="notif-item">
-    <div class="notif-ico" style="background:rgba(198,161,91,0.14);color:var(--gold-bright);">${svgIcon(n.icon || 'notifications')}</div>
-    <div class="notif-body"><h5>${n.title || n.name}</h5><p>${n.desc || n.message || 'No details provided'}</p></div>
-    <div class="notif-time">${n.time || 'Just now'}</div>
-  </div>`;
-}
-document.getElementById('dashNotifList').innerHTML = NOTIFS.slice(0,4).map(notifHTML).join('');
-document.getElementById('fullNotifList').innerHTML = NOTIFS.map(notifHTML).join('');
-
 /* ============ STREAK TRACKER ============ */
 const STREAKS = normalizeList(await api('/api/admin/streaks'));
 const TIER_META = {
@@ -405,6 +412,8 @@ function renderTiers(){
     </div>`;
   }).join('');
 }
+let FEES = [];
+let NOTIFS = dashboardSummary.notifications || [];
 const REWARD_HISTORY = normalizeList(await api('/api/admin/rewards'));
 function renderRewardHistory(){
   document.getElementById('rewardHistory').innerHTML = REWARD_HISTORY.map(r=>`
@@ -414,15 +423,63 @@ function renderRewardHistory(){
       <div class="rh-tag">${r.reward}</div>
     </div>`).join('');
 }
+function notifHTML(n){
+  return `<div class="notif-item">
+    <div class="notif-ico" style="background:rgba(198,161,91,0.14);color:var(--gold-bright);">${svgIcon(n.icon || 'notifications')}</div>
+    <div class="notif-body"><h5>${n.title || n.name}</h5><p>${n.desc || n.message || 'No details provided'}</p></div>
+    <div class="notif-time">${n.time || 'Just now'}</div>
+  </div>`;
+}
+function renderNotifications(){
+  document.getElementById('dashNotifList').innerHTML = NOTIFS.slice(0,4).map(notifHTML).join('');
+  document.getElementById('fullNotifList').innerHTML = NOTIFS.map(notifHTML).join('');
+}
 renderStreaks();
 renderTiers();
 renderRewardHistory();
+renderNotifications();
+
+async function refreshNotifications(){
+  NOTIFS = await api('/api/admin/notifications').catch(() => NOTIFS);
+  renderNotifications();
+}
+
+async function sendFeeReminder(id) {
+  if (!id) return;
+  try {
+    await api(`/api/admin/fees/${id}/remind`, { method: 'POST' });
+    await refreshNotifications();
+    await refreshData();
+    alert('Fee reminder sent successfully.');
+  } catch (error) {
+    console.error('Could not send fee reminder:', error);
+    alert(error.message || 'Could not send fee reminder.');
+  }
+}
+
+async function sendFeeReminders() {
+  const dueFees = FEES.filter((item) => ['Pending', 'Overdue'].includes(item.status));
+  if (!dueFees.length) {
+    return alert('No pending or overdue fee records found.');
+  }
+  if (!confirm(`Send reminders for ${dueFees.length} fee record(s)?`)) return;
+  const results = await Promise.allSettled(dueFees.map((item) => api(`/api/admin/fees/${item.id || item._id}/remind`, { method: 'POST' })));
+  const successCount = results.filter((r) => r.status === 'fulfilled').length;
+  const failureCount = results.filter((r) => r.status === 'rejected').length;
+  await refreshNotifications();
+  await refreshData();
+  alert(`Sent ${successCount} reminder(s).${failureCount ? ` ${failureCount} failed.` : ''}`);
+}
 
 // expose functions referenced via inline onclick="..." attributes in the markup
 window.switchPage = switchPage;
 window.openRewardModal = openRewardModal;
 window.closeRewardModal = closeRewardModal;
 window.sendReward = sendReward;
+window.sendFeeReminder = sendFeeReminder;
+window.sendFeeReminders = sendFeeReminders;
+
+document.getElementById('sendFeeReminders')?.addEventListener('click', sendFeeReminders);
 
 async function refreshData() {
   const [members, trainers, attendance, fees, plans, workouts, diets] = await Promise.all([
@@ -434,6 +491,7 @@ async function refreshData() {
     api('/api/admin/workouts').catch(() => []).then(normalizeList),
     api('/api/admin/diets').catch(() => []).then(normalizeList),
   ]);
+  FEES = fees;
   renderMembers(members);
   TRAINERS = trainers;
   renderTrainers(trainers);
@@ -596,7 +654,7 @@ function renderFees(list) {
       <td>${item.dueDate || '—'}</td>
       <td>${item.paidDate || '—'}</td>
       <td>${item.method || 'UPI'}</td>
-      <td><div class="row-actions"><span onclick="window.editFee('${item._id}')">✎</span><span onclick="window.deleteFee('${item._id}')">⋯</span></div></td>
+      <td><div class="row-actions"><span onclick="window.editFee('${item.id || item._id}')">✎</span><span onclick="window.sendFeeReminder('${item.id || item._id}')">📩</span><span onclick="window.deleteFee('${item.id || item._id}')">⋯</span></div></td>
     </tr>`).join('');
 }
 
